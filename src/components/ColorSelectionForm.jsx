@@ -101,6 +101,8 @@ const ColorSelectionForm = () => {
                         console.log("Selected color code:", values.color);
                         state.currentOrder = {...state.currentOrder, ...selectedColor};
                         console.log("Order Item:", state.currentOrder);
+                        state.pickColor = false;
+                        state.pickSize = true;
                         setSubmitting(false);
                     }}
                 >

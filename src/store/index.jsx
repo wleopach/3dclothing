@@ -15,7 +15,10 @@ const state = proxy({
     userEmail : '',
     clientData : {},
     stock: '',
-    currentOrder: {}
+    currentOrder: {},
+    pickSize: false,
+    cart:[]
+
 
 });
 export default state;

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSnapshot } from "valtio";
-import { CustomButton, ClientInfoForm, ProductSelectionForm, ColorSelectionForm} from '../components';
+import { CustomButton, ClientInfoForm, ProductSelectionForm, ColorSelectionForm , SizeSelectionForm} from '../components';
 import state from "../store";
 import {
     headContainerAnimation,
@@ -27,7 +27,14 @@ const Home = () => {
             )   : snap.pickColor ? (
                    <ColorSelectionForm />
 
-            ) : snap.intro &&
+
+            )
+                   : snap.pickSize ? (
+                <SizeSelectionForm />
+
+
+                )
+                : snap.intro &&
                 (
                 <motion.div key="intro" className="home" {...slideAnimation('left')}>
                     <motion.header {...slideAnimation('down')}>

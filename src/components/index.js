@@ -5,6 +5,7 @@ import ColorPicker from './ColorPicker';
 import FilePicker from './FilePicker';
 import ProductSelectionForm from './ProductSelectionForm';
 import ColorSelectionForm from "./ColorSelectionForm";
+import SizeSelectionForm from "./SizeSelectionForm";
 import Tab from './Tab';
 
 export {
@@ -16,4 +17,5 @@ export {
     ClientInfoForm,
     ProductSelectionForm,
     ColorSelectionForm,
+    SizeSelectionForm,
 };
