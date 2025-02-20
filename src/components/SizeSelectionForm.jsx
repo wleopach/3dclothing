@@ -16,12 +16,12 @@ const SizeSelectionForm = () => {
     const [tallasCache, setTallasCache] = useState({});
 
     const fetchTallas = async () => {
-        if (!snap.currentOrder.productType || !["Hombre", "Mujer"].includes(sex)) {
+        if (!snap.currentOrder.product_id || !["Hombre", "Mujer"].includes(sex)) {
             setTallasData([]);
             return;
         }
 
-        const cacheKey = `${sex}-${snap.currentOrder.productType}`;
+        const cacheKey = `${sex}-${snap.currentOrder.product_id}`;
 
         if (tallasCache[cacheKey]) {
             setTallasData(tallasCache[cacheKey]);
@@ -33,7 +33,7 @@ const SizeSelectionForm = () => {
 
         try {
             const response = await axiosInstance.get(
-                `/tallas/by_name/by_sex?name=${snap.currentOrder.productType}&sex=${sex}`
+                `/tallas/by_name/by_sex?name=${snap.currentOrder.product_id}&sex=${sex}`
             );
             const tallas = response.data[0]?.values || [];
 
@@ -62,9 +62,9 @@ const SizeSelectionForm = () => {
                     initialValues={{ sex: "", talla: "", quantity: "" }}
                     onSubmit={(values, { setSubmitting }) => {
                         console.log("Selected talla:", values.talla, "Quantity:", values.quantity);
-                        state.currentOrder.talla = values.talla;
+                        state.currentOrder.size = values.talla;
                         state.currentOrder.quantity = values.quantity;
-                        state.currentOrder = { ...state.currentOrder, ...values };
+                        state.currentOrder.sex = values.sex;
                         state.cart = [...state.cart, { ...state.currentOrder }];
                         console.log("cart", state.cart);
                         setSubmitting(false);

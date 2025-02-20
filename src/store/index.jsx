@@ -15,7 +15,15 @@ const state = proxy({
     userEmail : '',
     clientData : {},
     stock: '',
-    currentOrder: {},
+    currentOrder: {
+        "product_id":'',
+        "tela_id":'',
+        "quantity":0,
+        "size": 0,
+        "client_email":'',
+        "user_id": '',
+        "sex":''
+    },
     pickSize: false,
     cart:[]
 

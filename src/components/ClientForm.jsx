@@ -31,7 +31,8 @@ const ClientInfoForm = () => {
 
                         // Update the state correctly
                         state.clientData = values
-                        console.log(state.clientData)
+                        state.currentOrder.client_email = values.email
+                        console.log("current_order",state.currentOrder);
                         state.showForm = false;
                         state.showProductForm = true
 

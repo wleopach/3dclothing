@@ -16,6 +16,7 @@ const ProductSelectionForm = () => {
             try {
                 const response = await axiosInstance.get("/prendas");
                 setPrendas(response.data); // Assuming response.data is an array of { id, name, stocks }
+                console.log("prendas", response.data);
             } catch (error) {
                 console.error("Error fetching prendas:", error);
             }
@@ -48,8 +49,8 @@ const ProductSelectionForm = () => {
                             return;
                         }
                         console.log("Selection:", values);
-                        state.currentOrder = values
-
+                        state.currentOrder.product_id = values.productType;
+                        console.log("current_order",state.currentOrder);
                         state.pickColor = true;
                         state.stock = values.stock;
                         //state.file_3d = `${values.productType}.glb`;
@@ -74,7 +75,7 @@ const ProductSelectionForm = () => {
                                         setFieldValue("productType", selectedProduct);
 
                                         // Find selected product's stocks and update the options
-                                        const product = prendas.find(p => p.name === selectedProduct);
+                                        const product = prendas.find(p => p.id == selectedProduct);
                                         setSelectedStocks(product ? product.stocks : []);
                                         setSelectedSDescriptions(product ? product.descriptions : []);
                                         setFieldValue("stock", ""); // Reset stock selection
@@ -89,7 +90,7 @@ const ProductSelectionForm = () => {
                                 >
                                     <option value="">Seleccione una prenda</option>
                                     {prendas.map((prenda) => (
-                                        <option key={prenda.id} value={prenda.name}>
+                                        <option key={prenda.id} value={prenda.id}>
                                             {prenda.name}
                                         </option>
                                     ))}

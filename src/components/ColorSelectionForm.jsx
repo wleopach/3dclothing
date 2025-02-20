@@ -26,11 +26,13 @@ const ColorSelectionForm = () => {
                     params: { stock: snap.stock }
                 });
                 const telaData = response.data;
+                console.log("telas",telaData);
                 if (Array.isArray(telaData)) {
                     // Keep the full tela object to maintain both color RGB and code
                     const colorOptions = telaData.map(tela => ({
                         color: tela.color, // RGB tuple like "(251,251,251)"
-                        code: tela.code    // Color code/name
+                        code: tela.code,    // Color code/name
+                        id: tela.id  // id
                     }));
                     // Remove duplicates - this is more complex with objects
                     const uniqueOptions = colorOptions.filter((option, index, self) =>
@@ -99,8 +101,8 @@ const ColorSelectionForm = () => {
                     enableReinitialize
                     onSubmit={(values, { setSubmitting }) => {
                         console.log("Selected color code:", values.color);
-                        state.currentOrder = {...state.currentOrder, ...selectedColor};
-                        console.log("Order Item:", state.currentOrder);
+                        state.currentOrder.tela_id = selectedColor.id;
+                        console.log("Current order:", state.currentOrder);
                         state.pickColor = false;
                         state.pickSize = true;
                         setSubmitting(false);
