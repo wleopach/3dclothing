@@ -177,6 +177,21 @@ const SizeSelectionForm = () => {
                                 >
                                     Añadir a la órden
                                 </Button>
+                                {snap.cart.length > 0 && (
+                                    <Button
+                                        bg="blue.500"
+                                        color="white"
+                                        width="full"
+                                        _hover={{bg: "blue.600"}}
+                                        onClick={() => {
+                                            state.showCart = true;
+                                            state.pickSize = false;
+                                        }
+                                        }
+                                    >
+                                        Mostrar Carrito
+                                    </Button>
+                                )}
                             </VStack>
                         </Form>
                     )}

@@ -236,6 +236,21 @@ const ColorSelectionForm = () => {
                                     >
                                         Confirmar selección
                                     </Button>
+                                    {snap.cart.length > 0 && (
+                                        <Button
+                                            bg="blue.500"
+                                            color="white"
+                                            width="full"
+                                            _hover={{bg: "blue.600"}}
+                                            onClick={() => {
+                                                state.showCart = true;
+                                                state.pickColor = false;
+                                            }
+                                            }
+                                        >
+                                            Mostrar Carrito
+                                        </Button>
+                                    )}
                                 </Box>
                             </VStack>
                         </Form>

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
-import { Formik, Form, Field } from "formik";
-import { useSnapshot } from "valtio";
+import {useState, useEffect} from "react";
+import {Button, VStack, Box, Flex, Text} from "@chakra-ui/react";
+import {Formik, Form, Field} from "formik";
+import {useSnapshot} from "valtio";
 import state from "../store";
 import axiosInstance from "./../axiosConfig";
 
@@ -41,8 +41,8 @@ const ProductSelectionForm = () => {
                 boxShadow="2xl"
             >
                 <Formik
-                    initialValues={{ productType: "", stock: "" }}
-                    onSubmit={(values, { setSubmitting }) => {
+                    initialValues={{productType: "", stock: ""}}
+                    onSubmit={(values, {setSubmitting}) => {
                         if (!values.productType || !values.stock) {
                             console.warn("Product and stock must be selected!");
                             setSubmitting(false);
@@ -50,7 +50,7 @@ const ProductSelectionForm = () => {
                         }
                         console.log("Selection:", values);
                         state.currentOrder.product_id = values.productType;
-                        console.log("current_order",state.currentOrder);
+                        console.log("current_order", state.currentOrder);
                         state.pickColor = true;
                         state.stock = values.stock;
                         //state.file_3d = `${values.productType}.glb`;
@@ -58,7 +58,7 @@ const ProductSelectionForm = () => {
                         setSubmitting(false);
                     }}
                 >
-                    {({ values, setFieldValue, isSubmitting }) => (
+                    {({values, setFieldValue, isSubmitting}) => (
                         <Form>
                             <VStack spacing={4} align="stretch">
                                 <Text fontSize="xl" fontWeight="bold" color={snap.color} textAlign="center">
@@ -127,10 +127,25 @@ const ProductSelectionForm = () => {
                                     color="black"
                                     isLoading={isSubmitting}
                                     width="full"
-                                    _hover={{ bg: "yellow.500" }}
+                                    _hover={{bg: "yellow.500"}}
                                 >
                                     Seleccionar Tela
                                 </Button>
+                                {snap.cart.length > 0 && (
+                                    <Button
+                                        bg="blue.500"
+                                        color="white"
+                                        width="full"
+                                        _hover={{bg: "blue.600"}}
+                                        onClick={() => {
+                                            state.showCart = true;
+                                            state.showProductForm = false;
+                                        }
+                                        }
+                                    >
+                                        Mostrar Carrito
+                                    </Button>
+                                )}
                             </VStack>
                         </Form>
                     )}

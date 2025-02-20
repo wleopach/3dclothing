@@ -6,6 +6,7 @@ import FilePicker from './FilePicker';
 import ProductSelectionForm from './ProductSelectionForm';
 import ColorSelectionForm from "./ColorSelectionForm";
 import SizeSelectionForm from "./SizeSelectionForm";
+import Cart from "./Cart";
 import Tab from './Tab';
 
 export {
@@ -18,4 +19,5 @@ export {
     ProductSelectionForm,
     ColorSelectionForm,
     SizeSelectionForm,
+    Cart
 };
