@@ -1,5 +1,7 @@
-import { useSnapshot } from 'valtio';
+import {Box, Text, Button, VStack} from "@chakra-ui/react";
+import { useSnapshot } from "valtio";
 import state from "../store";
+import Nav from "./Nav"; // Ensure Nav is properly imported
 
 const Cart = () => {
     const snap = useSnapshot(state);
@@ -7,32 +9,47 @@ const Cart = () => {
     if (!snap.showCart) return null;
 
     return (
-        <div className="p-4 border rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">Listado de productos</h2>
-            {snap.cart.length === 0 ? (
-                <p className="text-gray-500">Your cart is empty.</p>
-            ) : (
-                <ul className="space-y-4">
-                    {snap.cart.map((item, index) => (
-                        <li key={index} className="p-2 border rounded-lg flex justify-between items-center">
-                            <div>
-                                <p className="font-semibold">Product ID: {item.product_id}</p>
-                                <p>Talla: {item.size}</p>
-                                <p>Cantidad: {item.quantity}</p>
-                                <p>Correo: {item.client_email}</p>
-                                <p>Sexo: {item.sex}</p>
-                            </div>
-                            <button
-                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                                onClick={() => state.cart.splice(index, 1)}
+        <VStack>
+            <Nav /> {/* Include Nav */}
+            <Box p={4} borderWidth={1} borderRadius="lg" shadow="md" maxW="600px" mx="auto">
+
+                <Text fontSize="xl" fontWeight="bold" mb={4}>Listado de productos</Text>
+
+                {snap.cart.length === 0 ? (
+                    <Text color="gray.500">Your cart is empty.</Text>
+                ) : (
+                    <Box as="ul" listStylePosition="inside" spacing={4}>
+                        {snap.cart.map((item, index) => (
+                            <Box as="li"
+                                 key={index}
+                                 p={2}
+                                 borderWidth={1}
+                                 borderRadius="lg"
+                                 display="flex"
+                                 justifyContent="space-between"
+                                 alignItems="center"
+                                 mb={2}
                             >
-                                Remove
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+                                <Box>
+                                    <Text fontWeight="semibold">Product ID: {item.product_id}</Text>
+                                    <Text>Talla: {item.size}</Text>
+                                    <Text>Cantidad: {item.quantity}</Text>
+                                    <Text>Correo: {item.client_email}</Text>
+                                    <Text>Sexo: {item.sex}</Text>
+                                </Box>
+                                <Button
+                                    colorScheme="red"
+                                    size="sm"
+                                    onClick={() => state.cart.splice(index, 1)}
+                                >
+                                    Remove
+                                </Button>
+                            </Box>
+                        ))}
+                    </Box>
+                )}
+            </Box>
+        </VStack>
     );
 };
 

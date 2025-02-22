@@ -25,7 +25,7 @@ const Home = () => {
 
 
 
-            )   : snap.pickColor ? (
+            )   : snap.pickColor  ? (
 
                     <ColorSelectionForm />
 
