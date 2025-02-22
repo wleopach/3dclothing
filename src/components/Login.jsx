@@ -22,6 +22,7 @@ const LoginForm = () => {
 
             const userData = res.data; // Get user data from response
             state.currentOrder.user_id = userData.id;
+
             console.log("current_order",state.currentOrder);
             state.userEmail = values.email;
             state.user = userData;

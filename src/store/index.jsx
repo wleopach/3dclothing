@@ -23,7 +23,7 @@ const state = proxy({
         "size": 0,
         "client_email":'',
         "user_id": '',
-        "sex":''
+        "sex":'',
     },
     pickSize: false,
     cart:[]

@@ -1,6 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSnapshot } from "valtio";
-import { CustomButton, Cart, ClientInfoForm, ProductSelectionForm, ColorSelectionForm , SizeSelectionForm} from '../components';
+import {
+    CustomButton,
+    Cart,
+    ClientInfoForm,
+    ProductSelectionForm,
+    ColorSelectionForm,
+    SizeSelectionForm,
+    LoginForm
+} from '../components';
 import state from "../store";
 import {
     headContainerAnimation,
@@ -8,15 +16,15 @@ import {
     headTextAnimation,
     slideAnimation
 } from '../config/motion';
-import Login from "@/components/Login.jsx";
+
 
 const Home = () => {
     const snap = useSnapshot(state);
-
+    console.log(snap);
     return (
         <AnimatePresence>
             {snap.isUnLogged ? (
-                <Login />
+                <LoginForm />
             ) : snap.showForm ? (
                 <ClientInfoForm
                 />

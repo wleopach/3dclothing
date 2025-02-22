@@ -8,7 +8,7 @@ import ColorSelectionForm from "./ColorSelectionForm";
 import SizeSelectionForm from "./SizeSelectionForm";
 import Cart from "./Cart";
 import Tab from './Tab';
-
+import LoginForm from './Login';
 export {
     CustomButton,
     Tab,
@@ -19,5 +19,6 @@ export {
     ProductSelectionForm,
     ColorSelectionForm,
     SizeSelectionForm,
-    Cart
+    Cart,
+    LoginForm
 };

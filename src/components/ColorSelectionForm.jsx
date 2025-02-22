@@ -1,5 +1,6 @@
+import Nav from './Nav'
 import { useState, useEffect } from "react";
-import { Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
+import {Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, } from "formik";
 import axiosInstance from "../axiosConfig";
 import state from "../store";
@@ -79,185 +80,177 @@ const ColorSelectionForm = () => {
     };
 
     return (
-        <Flex
-            minH="100vh"
-            align="center"
-            justify="center"
-            bg="black"
-            p={[2, 4, 6]}
-        >
-            <Box
-                w={["95%", "90%", "70%", "50%"]}
+        <>
+            <Nav/>
+            <Flex
+                minH="100vh"
+                align="center"
+                justify="center"
                 bg="black"
-                p={[3, 4, 6]}
-                borderRadius="lg"
-                boxShadow="2xl"
-                maxH={["80vh", "85vh", "90vh"]}
-                display="flex"
-                flexDirection="column"
+                p={[2, 4, 6]}
             >
-                <Formik
-                    initialValues={{ color: "" }}
-                    enableReinitialize
-                    onSubmit={(values, { setSubmitting }) => {
-                        console.log("Selected color code:", values.color);
-                        state.currentOrder.tela_id = selectedColor.id;
-                        console.log("Current order:", state.currentOrder);
-                        state.pickColor = false;
-                        state.pickSize = true;
-                        setSubmitting(false);
-                    }}
+                <Box
+                    w={["95%", "90%", "70%", "50%"]}
+                    bg="black"
+                    p={[3, 4, 6]}
+                    borderRadius="lg"
+                    boxShadow="2xl"
+                    maxH={["80vh", "85vh", "90vh"]}
+                    display="flex"
+                    flexDirection="column"
                 >
-                    {({ values, setFieldValue, isSubmitting }) => (
-                        <Form style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <VStack spacing={3} align="stretch" height="100%">
-                                {/* Fixed Header */}
-                                <Box flexShrink={0}>
-                                    <Text fontSize="xl" fontWeight="bold" color={snap.color} textAlign="center" mb={2}>
-                                        Seleccionar color
-                                    </Text>
-
-                                    {/* Display selected color information */}
-                                    {selectedColor && (
-                                        <Box textAlign="center" mb={3}>
-                                            <Text color={snap.color}>
-                                                Color seleccionado: {selectedColor.code}
-                                            </Text>
-                                            <Box
-                                                width="40px"
-                                                height="40px"
-                                                borderRadius="md"
-                                                backgroundColor={getRgbColor(selectedColor.color)}
-                                                margin="0 auto"
-                                                mt={1}
-                                                border="2px solid white"
-                                            />
-                                        </Box>
-                                    )}
-                                </Box>
-
-                                {/* Scrollable Colors Container */}
-                                <Text color="white" flexShrink={0}>Colores disponibles:</Text>
-                                <Box
-                                    overflowY="auto"
-                                    flexGrow={1}
-                                    maxH={["250px", "300px", "400px"]}
-                                    mb={4}
-                                    p={2}
-                                    border="1px solid #333"
-                                    borderRadius="md"
-                                    sx={{
-                                        // Ensure scrollbar is visible on all devices
-                                        scrollbarWidth: "thin",
-                                        scrollbarColor: "#666 #222",
-                                        // Webkit browsers (Chrome, Safari)
-                                        '&::-webkit-scrollbar': {
-                                            width: '10px',
-                                        },
-                                        '&::-webkit-scrollbar-track': {
-                                            background: '#222',
-                                            borderRadius: '4px',
-                                        },
-                                        '&::-webkit-scrollbar-thumb': {
-                                            background: '#666',
-                                            borderRadius: '4px',
-                                            border: '2px solid #222',
-                                        },
-                                        '&::-webkit-scrollbar-thumb:hover': {
-                                            background: '#888',
-                                        },
-                                        // For iOS devices
-                                        WebkitOverflowScrolling: 'touch',
-                                    }}
-                                >
-                                    {loading ? (
-                                        <Text color="white" textAlign="center" py={4}>Cargando colores...</Text>
-                                    ) : colorsData.length === 0 ? (
-                                        <Text color="white" textAlign="center" py={4}>No hay colores disponibles</Text>
-                                    ) : (
-                                        <Flex
-                                            wrap="wrap"
-                                            justify="center"
-                                            gap={2}
-                                        >
-                                            {colorsData.map((colorData, index) => (
-                                                <Box
-                                                    key={index}
-                                                    onClick={() => {
-                                                        handleColorSelect(colorData);
-                                                        setFieldValue("color", colorData.code);
-                                                    }}
-                                                    cursor="pointer"
-                                                    borderRadius="md"
-                                                    p={1}
-                                                    mb={2}
-                                                    border={selectedColor && selectedColor.code === colorData.code
-                                                        ? "2px solid white"
-                                                        : "2px solid transparent"}
-                                                >
-                                                    <Box
-                                                        width="40px"
-                                                        height="40px"
-                                                        borderRadius="md"
-                                                        backgroundColor={getRgbColor(colorData.color)}
-                                                        title={colorData.code}
-                                                    />
-                                                    <Text
-                                                        color="white"
-                                                        fontSize="xs"
-                                                        textAlign="center"
-                                                        mt={1}
-                                                    >
-                                                        {colorData.code}
-                                                    </Text>
-                                                </Box>
-                                            ))}
-                                        </Flex>
-                                    )}
-                                </Box>
-
-                                {/* Fixed Footer */}
-                                <Box flexShrink={0}>
-                                    {error && (
-                                        <Text color="red.500" textAlign="center" mb={3}>
-                                            {error}
+                    <Formik
+                        initialValues={{ color: "" }}
+                        enableReinitialize
+                        onSubmit={(values, { setSubmitting }) => {
+                            console.log("Selected color code:", values.color);
+                            state.currentOrder.tela_id = selectedColor.id;
+                            console.log("Current order:", state.currentOrder);
+                            state.pickColor = false;
+                            state.pickSize = true;
+                            setSubmitting(false);
+                        }}
+                    >
+                        {({ values, setFieldValue, isSubmitting }) => (
+                            <Form style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <VStack spacing={3} align="stretch" height="100%">
+                                    {/* Fixed Header */}
+                                    <Box flexShrink={0}>
+                                        <Text fontSize="xl" fontWeight="bold" color={snap.color} textAlign="center" mb={2}>
+                                            Seleccionar color
                                         </Text>
-                                    )}
 
-                                    <Button
-                                        type="submit"
-                                        bg={snap.color}
-                                        color="black"
-                                        isLoading={isSubmitting}
-                                        width="full"
-                                        _hover={{ bg: selectedColor ? getRgbColor(selectedColor.color) : 'gray' }}
-                                        _active={{ bg: selectedColor ? getRgbColor(selectedColor.color) : 'gray' }}
-                                        disabled={loading || !values.color}
+                                        {/* Display selected color information */}
+                                        {selectedColor && (
+                                            <Box textAlign="center" mb={3}>
+                                                <Text color={snap.color}>
+                                                    Color seleccionado: {selectedColor.code}
+                                                </Text>
+                                                <Box
+                                                    width="40px"
+                                                    height="40px"
+                                                    borderRadius="md"
+                                                    backgroundColor={getRgbColor(selectedColor.color)}
+                                                    margin="0 auto"
+                                                    mt={1}
+                                                    border="2px solid white"
+                                                />
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {/* Scrollable Colors Container */}
+                                    <Text color="white" flexShrink={0}>Colores disponibles:</Text>
+                                    <Box
+                                        overflowY="auto"
+                                        flexGrow={1}
+                                        maxH={["250px", "300px", "400px"]}
+                                        mb={4}
+                                        p={2}
+                                        border="1px solid #333"
+                                        borderRadius="md"
+                                        sx={{
+                                            // Ensure scrollbar is visible on all devices
+                                            scrollbarWidth: "thin",
+                                            scrollbarColor: "#666 #222",
+                                            // Webkit browsers (Chrome, Safari)
+                                            '&::-webkit-scrollbar': {
+                                                width: '10px',
+                                            },
+                                            '&::-webkit-scrollbar-track': {
+                                                background: '#222',
+                                                borderRadius: '4px',
+                                            },
+                                            '&::-webkit-scrollbar-thumb': {
+                                                background: '#666',
+                                                borderRadius: '4px',
+                                                border: '2px solid #222',
+                                            },
+                                            '&::-webkit-scrollbar-thumb:hover': {
+                                                background: '#888',
+                                            },
+                                            // For iOS devices
+                                            WebkitOverflowScrolling: 'touch',
+                                        }}
                                     >
-                                        Confirmar selección
-                                    </Button>
-                                    {snap.cart.length > 0 && (
+                                        {loading ? (
+                                            <Text color="white" textAlign="center" py={4}>Cargando colores...</Text>
+                                        ) : colorsData.length === 0 ? (
+                                            <Text color="white" textAlign="center" py={4}>No hay colores disponibles</Text>
+                                        ) : (
+                                            <Flex
+                                                wrap="wrap"
+                                                justify="center"
+                                                gap={2}
+                                            >
+                                                {colorsData.map((colorData, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        onClick={() => {
+                                                            handleColorSelect(colorData);
+                                                            setFieldValue("color", colorData.code);
+                                                        }}
+                                                        cursor="pointer"
+                                                        borderRadius="md"
+                                                        p={1}
+                                                        mb={2}
+                                                        border={selectedColor && selectedColor.code === colorData.code
+                                                            ? "2px solid white"
+                                                            : "2px solid transparent"}
+                                                    >
+                                                        <Box
+                                                            width="40px"
+                                                            height="40px"
+                                                            borderRadius="md"
+                                                            backgroundColor={getRgbColor(colorData.color)}
+                                                            title={colorData.code}
+                                                        />
+                                                        <Text
+                                                            color="white"
+                                                            fontSize="xs"
+                                                            textAlign="center"
+                                                            mt={1}
+                                                        >
+                                                            {colorData.code}
+                                                        </Text>
+                                                    </Box>
+                                                ))}
+                                            </Flex>
+                                        )}
+                                    </Box>
+
+                                    {/* Fixed Footer */}
+                                    <Box
+                                        p={3}
+                                        position="sticky"
+                                        bottom="0"
+                                        bg="black"
+                                        display="flex"
+                                        justifyContent="center"
+                                        alignItems="center"
+                                    >
                                         <Button
-                                            bg="blue.500"
-                                            color="white"
+                                            type="submit"
+                                            bg={snap.color}
+                                            color="black"
+                                            isLoading={isSubmitting}
                                             width="full"
-                                            _hover={{bg: "blue.600"}}
-                                            onClick={() => {
-                                                state.showCart = true;
-                                                state.pickColor = false;
-                                            }
-                                            }
+                                            _hover={{ bg: selectedColor ? getRgbColor(selectedColor.color) : 'gray' }}
+                                            _active={{ bg: selectedColor ? getRgbColor(selectedColor.color) : 'gray' }}
+                                            disabled={loading || !values.color}
                                         >
-                                            Mostrar Carrito
+                                            Confirmar selección
                                         </Button>
-                                    )}
-                                </Box>
-                            </VStack>
-                        </Form>
-                    )}
-                </Formik>
-            </Box>
-        </Flex>
+                                    </Box>
+
+                                </VStack>
+                            </Form>
+                        )}
+                    </Formik>
+                </Box>
+            </Flex>
+        </>
+
     );
 };
 

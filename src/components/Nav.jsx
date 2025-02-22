@@ -3,12 +3,15 @@ import { useSnapshot } from "valtio";
 import state from "../store"; // Import Valtio state
 import logo from "../assets/images/logo.png";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "../components/ui/menu";
-import { LuSearch } from "react-icons/lu"
+import { LuSearch } from "react-icons/lu";
+import CustomButton from "./CustomButton";
+
 export default function Nav() {
     const snap = useSnapshot(state);
     const isDesktop = useBreakpointValue({ base: false, lg: true });
-    console.log("Descktop", isDesktop);
+
     if (!snap.cart.length > 0) return null;
+
     return (
         <nav>
             <HStack
@@ -22,96 +25,108 @@ export default function Nav() {
                 {/* Desktop Menu */}
                 {isDesktop ? (
                     <HStack as="ul" spacing="20px" className="nav">
-
-                        {/* Buttons for state switching */}
-
-                        <Button
-                            colorScheme="teal"
-                            size="sm"
-                            onClick={() => {
+                        <CustomButton
+                            type="filled"
+                            title="Prendas"
+                            handleClick={() => {
                                 state.showProductForm = true;
                                 state.pickSize = false;
+                                state.pickColor = false;
                                 state.showCart = false;
                             }}
-                        >
-                            Select Product
-                        </Button>
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
 
+                        <CustomButton
+                            type="filled"
+                            title="Colores"
+                            handleClick={() => {
+                                state.pickSize = false;
+                                state.showProductForm = false;
+                                state.pickColor = true;
+                                state.showCart = false;
+                            }}
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
 
-                        <Button
-                            colorScheme="purple"
-                            size="sm"
-                            onClick={() => {
+                        <CustomButton
+                            type="filled"
+                            title="Tallas"
+                            handleClick={() => {
                                 state.pickSize = true;
                                 state.showProductForm = false;
+                                state.pickColor = false;
                                 state.showCart = false;
                             }}
-                        >
-                            Pick Size
-                        </Button>
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
 
-                            <Button
-                                colorScheme="blue"
-                                size="sm"
-                                onClick={() => {
-                                    state.showCart = true;
-                                    state.pickSize = false;
-                                    state.showProductForm = false;
-                                }}
-                            >
-                                Mostrar Carrito
-                            </Button>
-
+                        <CustomButton
+                            type="filled"
+                            title="Carrito"
+                            handleClick={() => {
+                                state.showCart = true;
+                                state.pickSize = false;
+                                state.pickColor = false;
+                                state.showProductForm = false;
+                            }}
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
                     </HStack>
                 ) : (
                     // Mobile Menu
-                    <HStack as="ul" spacing="20px" className="nav">
-                        <MenuRoot>
-                            <MenuTrigger asChild>
-                                <IconButton variant="outline" size="sm">
-                                    <LuSearch />
-                                </IconButton>
-                            </MenuTrigger>
-                            <MenuContent>
+                    <MenuRoot>
+                        <MenuTrigger asChild>
+                            <IconButton variant="outline" size="sm">
+                                <LuSearch />
+                            </IconButton>
+                        </MenuTrigger>
+                        <MenuContent>
+                            <MenuItem
+                                onClick={() => {
+                                    state.showProductForm = true;
+                                    state.pickSize = false;
+                                    state.pickColor = false;
+                                    state.showCart = false;
+                                }}
+                            >
+                                Prendas
+                            </MenuItem>
 
-                                {/* Mobile state-switching buttons */}
+                            <MenuItem
+                                onClick={() => {
+                                    state.pickColor = true;
+                                    state.showProductForm = false;
+                                    state.pickSize = false;
+                                    state.showCart = false;
+                                }}
+                            >
+                                Colores
+                            </MenuItem>
 
-                                <MenuItem
-                                    onClick={() => {
-                                        state.showProductForm = true;
-                                        state.pickSize = false;
-                                        state.showCart = false;
-                                    }}
-                                >
-                                    Select Product
-                                </MenuItem>
+                            <MenuItem
+                                onClick={() => {
+                                    state.pickSize = true;
+                                    state.showProductForm = false;
+                                    state.pickColor = false;
+                                    state.showCart = false;
+                                }}
+                            >
+                                Tallas
+                            </MenuItem>
 
-
-                                <MenuItem
-                                    onClick={() => {
-                                        state.pickSize = true;
-                                        state.showProductForm = false;
-                                        state.showCart = false;
-                                    }}
-                                >
-                                    Pick Size
-                                </MenuItem>
-
-
-
-                                    <MenuItem
-                                        onClick={() => {
-                                            state.showCart = true;
-                                            state.pickSize = false;
-                                            state.showProductForm = false;
-                                        }}
-                                    >
-                                        Mostrar Carrito
-                                    </MenuItem>
-
-                            </MenuContent>
-                        </MenuRoot>
-                    </HStack>
+                            <MenuItem
+                                onClick={() => {
+                                    state.showCart = true;
+                                    state.pickSize = false;
+                                    state.pickColor = false;
+                                    state.showProductForm = false;
+                                }}
+                            >
+                                Carrito
+                            </MenuItem>
+                        </MenuContent>
+                    </MenuRoot>
                 )}
             </HStack>
         </nav>
