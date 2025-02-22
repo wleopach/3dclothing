@@ -8,6 +8,7 @@ const Cart = () => {
     const snap = useSnapshot(state);
 
     if (!snap.showCart) return null;
+    console.log("Client data",snap.clientData)
 
     const handleCheckout = async () => {
         if (snap.cart.length === 0) {
@@ -16,7 +17,13 @@ const Cart = () => {
         }
 
         try {
-            const response = await axiosInstance.post("/api/orders/", { orders: snap.cart });
+            const cart = snap.cart.map(order => ({
+                ...order,
+                client_celphone: snap.clientData.phone || '',
+                client_name: snap.clientData.name|| '',
+                description: snap.clientData.orderDetails || ''
+            }));
+            const response = await axiosInstance.post("/orders/",  cart);
 
             console.log("Order placed successfully:", response.data);
 
