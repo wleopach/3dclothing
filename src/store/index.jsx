@@ -26,8 +26,8 @@ const state = proxy({
         "sex":'',
     },
     pickSize: false,
-    cart:[]
-
+    cart:[],
+    justCheckedOut: false,
 
 });
 export default state;

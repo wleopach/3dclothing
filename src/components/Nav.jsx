@@ -10,7 +10,85 @@ export default function Nav() {
     const snap = useSnapshot(state);
     const isDesktop = useBreakpointValue({ base: false, lg: true });
 
-    if (!snap.cart.length > 0) return null;
+    if (!snap.cart.length > 0 && snap.justCheckedOut) return (
+        <nav>
+            <HStack
+                justify="space-between"
+                padding="4rem 4rem"
+                backgroundColor="black"
+                height="50px"
+            >
+                <Image src={logo} alt="Company Logo" boxSize="100px" objectFit="contain" />
+
+                {/* Desktop Menu */}
+                {isDesktop ? (
+                    <HStack as="ul" spacing="20px" className="nav">
+                        <CustomButton
+                            type="filled"
+                            title="Nuevo Cliente"
+                            handleClick={() => {
+                                state.showProductForm = false;
+                                state.pickSize = false;
+                                state.pickColor = false;
+                                state.showCart = false;
+                                state.showForm = true;
+                                state.clientData = {}
+                            }}
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
+
+                        <CustomButton
+                            type="filled"
+                            title="Agregar otro producto"
+                            handleClick={() => {
+                                state.pickSize = false;
+                                state.showProductForm = true;
+                                state.pickColor = false;
+                                state.showCart = false;
+                            }}
+                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                        />
+
+                    </HStack>
+                ) : (
+                    // Mobile Menu
+                    <MenuRoot>
+                        <MenuTrigger asChild>
+                            <IconButton variant="outline" size="sm">
+                                <LuSearch />
+                            </IconButton>
+                        </MenuTrigger>
+                        <MenuContent>
+                            <MenuItem
+                                onClick={() => {
+                                    state.showProductForm = false;
+                                    state.pickSize = false;
+                                    state.pickColor = false;
+                                    state.showCart = false;
+                                    state.showClientForm = true;
+                                    state.clientData = {}
+                                }}
+                            >
+                                Nuevo Cliente
+                            </MenuItem>
+
+                            <MenuItem
+                                onClick={() => {
+                                    state.pickSize = false;
+                                    state.showProductForm = true;
+                                    state.pickColor = false;
+                                    state.showCart = false;
+                                }}
+                            >
+                                Agregar otro producto
+                            </MenuItem>
+
+                        </MenuContent>
+                    </MenuRoot>
+                )}
+            </HStack>
+        </nav>
+    );
 
     return (
         <nav>

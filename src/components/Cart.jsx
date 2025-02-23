@@ -24,9 +24,8 @@ const Cart = () => {
                 description: snap.clientData.orderDetails || ''
             }));
             const response = await axiosInstance.post("/orders/",  cart);
-
             console.log("Order placed successfully:", response.data);
-
+            state.justCheckedOut = true;
             // Clear the cart after successful submission
             state.cart = [];
         } catch (error) {
@@ -86,7 +85,7 @@ const Cart = () => {
                         <CustomButton
                             type="filled"
                             title="Enviar Orden"
-                            handleClick={handleCheckout()}
+                            handleClick={handleCheckout}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />
                     </>
