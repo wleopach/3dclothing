@@ -19,13 +19,13 @@ const ColorSelectionForm = () => {
     // Fetch colors based on selected stock
     useEffect(() => {
         const fetchColors = async () => {
-            if (!snap.stock) return;
+            if (!snap.currentOrder.stock) return;
 
             setLoading(true);
             setError("");
             try {
                 const response = await axiosInstance.get("/telas/by_stock/", {
-                    params: { stock: snap.stock }
+                    params: { stock: snap.currentOrder.stock }
                 });
                 const telaData = response.data;
                 console.log("telas",telaData);
@@ -51,7 +51,7 @@ const ColorSelectionForm = () => {
         };
 
         fetchColors();
-    }, [snap.stock]);
+    }, [snap.currentOrder.stock]);
 
     // Convert RGB tuple string "(251,251,251)" to CSS color string
     const getRgbColor = (colorStr) => {
@@ -110,6 +110,8 @@ const ColorSelectionForm = () => {
                             console.log("Current order:", state.currentOrder);
                             state.pickColor = false;
                             state.pickSize = true;
+                            state.currentOrder.codeSelected = selectedColor.code;
+                            state.currentOrder.colorSelected = selectedColor.color;
                             setSubmitting(false);
                         }}
                     >

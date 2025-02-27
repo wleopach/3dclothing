@@ -60,10 +60,9 @@ const ProductSelectionForm = () => {
                             state.currentOrder.product_id = values.productType;
                             console.log("current_order", state.currentOrder);
                             state.pickColor = true;
-                            state.stock = selectedStocks[values.stock];
-                            state.productName = selectedProductName;
-                            state.fabricName = selectedDescriptions[values.stock];
-                            console.log("FABRIC", state.fabricName);
+                            state.currentOrder.stock = selectedStocks[values.stock];
+                            state.currentOrder.productName = selectedProductName;
+                            state.currentOrder.fabricName = selectedDescriptions[values.stock];
                             //state.file_3d = `${values.productType}.glb`;
                             state.showProductForm = false;
                             setSubmitting(false);

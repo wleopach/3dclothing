@@ -1,3 +1,4 @@
+import CurrentOrder  from "./CurrentOrder";
 import Nav from './Nav'
 import { useState, useEffect } from "react";
 import { Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
@@ -59,6 +60,7 @@ const SizeSelectionForm = () => {
     return (
         <>
             <Nav /> {/* Include the navigation component here */}
+            <CurrentOrder/>
             <Flex minH="100vh" align="center" justify="center" bg="black" p={[2, 4, 6]}>
                 <Box w={["95%", "90%", "70%", "50%"]} bg="black" p={[3, 4, 6]} borderRadius="lg" boxShadow="2xl">
                     <Formik
