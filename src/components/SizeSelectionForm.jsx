@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import axiosInstance from "../axiosConfig";
-import state from "../store";
+import {state} from "../store";
 import { useSnapshot } from "valtio";
 
 const SizeSelectionForm = () => {

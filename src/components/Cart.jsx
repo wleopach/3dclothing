@@ -1,7 +1,7 @@
 import { Box, Text, Button } from "@chakra-ui/react";
 import { useSnapshot } from "valtio";
 import axiosInstance from "../axiosConfig"; // Import axios instance
-import state from "../store";
+import {state, removeFromCart, checkout} from "../store";
 import Nav from "./Nav"; // Ensure Nav is properly imported
 import CustomButton from "./CustomButton";
 const Cart = () => {
@@ -27,7 +27,7 @@ const Cart = () => {
             console.log("Order placed successfully:", response.data);
             state.justCheckedOut = true;
             // Clear the cart after successful submission
-            state.cart = [];
+            checkout();
         } catch (error) {
             console.error("Error submitting order:", error.response?.data || error.message);
         }
@@ -73,7 +73,7 @@ const Cart = () => {
                                     <Button
                                         colorScheme="red"
                                         size="sm"
-                                        onClick={() => state.cart.splice(index, 1)}
+                                        onClick={() => removeFromCart(index)}
                                     >
                                         Remove
                                     </Button>

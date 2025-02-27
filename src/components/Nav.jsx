@@ -1,14 +1,14 @@
-import { HStack, Image, Button, useBreakpointValue, IconButton } from "@chakra-ui/react";
-import { useSnapshot } from "valtio";
-import state from "../store"; // Import Valtio state
+import {HStack, Image, Button, useBreakpointValue, IconButton} from "@chakra-ui/react";
+import {useSnapshot} from "valtio";
+import {state} from "../store"; // Import Valtio state
 import logo from "../assets/images/logo.png";
-import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "../components/ui/menu";
-import { LuSearch } from "react-icons/lu";
+import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
+import {LuSearch} from "react-icons/lu";
 import CustomButton from "./CustomButton";
 
 export default function Nav() {
     const snap = useSnapshot(state);
-    const isDesktop = useBreakpointValue({ base: false, lg: true });
+    const isDesktop = useBreakpointValue({base: false, lg: true});
 
     if (!snap.cart.length > 0 && snap.justCheckedOut) return (
         <nav>
@@ -18,7 +18,7 @@ export default function Nav() {
                 backgroundColor="black"
                 height="50px"
             >
-                <Image src={logo} alt="Company Logo" boxSize="100px" objectFit="contain" />
+                <Image src={logo} alt="Company Logo" boxSize="100px" objectFit="contain"/>
 
                 {/* Desktop Menu */}
                 {isDesktop ? (
@@ -55,7 +55,7 @@ export default function Nav() {
                     <MenuRoot>
                         <MenuTrigger asChild>
                             <IconButton variant="outline" size="sm">
-                                <LuSearch />
+                                <LuSearch/>
                             </IconButton>
                         </MenuTrigger>
                         <MenuContent>
@@ -98,24 +98,27 @@ export default function Nav() {
                 backgroundColor="black"
                 height="50px"
             >
-                <Image src={logo} alt="Company Logo" boxSize="100px" objectFit="contain" />
+                <Image src={logo} alt="Company Logo" boxSize="100px" objectFit="contain"/>
 
                 {/* Desktop Menu */}
                 {isDesktop ? (
                     <HStack as="ul" spacing="20px" className="nav">
-                        <CustomButton
-                            type="filled"
-                            title="Prendas"
-                            handleClick={() => {
-                                state.showProductForm = true;
-                                state.pickSize = false;
-                                state.pickColor = false;
-                                state.showCart = false;
-                            }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
-                        />
+                        {!(snap.currentOrder.product_id === '') ?
+                            (<CustomButton
+                                type="filled"
+                                title="Prendas"
+                                handleClick={() => {
+                                    state.showProductForm = true;
+                                    state.pickSize = false;
+                                    state.pickColor = false;
+                                    state.showCart = false;
+                                }}
+                                customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            />) : null
+                        }
 
-                        <CustomButton
+                        {!(snap.currentOrder.tela_id === '') ?
+                        (<CustomButton
                             type="filled"
                             title="Colores"
                             handleClick={() => {
@@ -125,9 +128,11 @@ export default function Nav() {
                                 state.showCart = false;
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
-                        />
+                        />) : null
+                        }
 
-                        <CustomButton
+                        {!(snap.currentOrder.size == 0) ?
+                       ( <CustomButton
                             type="filled"
                             title="Tallas"
                             handleClick={() => {
@@ -137,9 +142,10 @@ export default function Nav() {
                                 state.showCart = false;
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
-                        />
-
-                        <CustomButton
+                        />): null
+                        }
+                        {!(snap.cart.length === 0) ?
+                        (<CustomButton
                             type="filled"
                             title="Carrito"
                             handleClick={() => {
@@ -149,14 +155,15 @@ export default function Nav() {
                                 state.showProductForm = false;
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
-                        />
+                        />): null
+                        }
                     </HStack>
                 ) : (
                     // Mobile Menu
                     <MenuRoot>
                         <MenuTrigger asChild>
                             <IconButton variant="outline" size="sm">
-                                <LuSearch />
+                                <LuSearch/>
                             </IconButton>
                         </MenuTrigger>
                         <MenuContent>

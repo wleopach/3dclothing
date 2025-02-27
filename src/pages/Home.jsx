@@ -9,7 +9,7 @@ import {
     SizeSelectionForm,
     LoginForm
 } from '../components';
-import state from "../store";
+import {state} from "../store";
 import {
     headContainerAnimation,
     headContentAnimation,

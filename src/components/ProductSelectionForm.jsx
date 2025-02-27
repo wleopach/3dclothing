@@ -3,7 +3,7 @@ import {useState, useEffect} from "react";
 import {Button, VStack, Box, Flex, Text} from "@chakra-ui/react";
 import {Formik, Form, Field} from "formik";
 import {useSnapshot} from "valtio";
-import state from "../store";
+import {state} from "../store";
 import axiosInstance from "./../axiosConfig";
 
 const ProductSelectionForm = () => {

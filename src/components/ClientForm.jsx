@@ -2,7 +2,7 @@ import { Button, Input, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useSnapshot } from "valtio";
-import state from "../store";
+import {state} from "../store";
 
 const ClientInfoForm = () => {
     const snap = useSnapshot(state);

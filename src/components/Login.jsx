@@ -3,7 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
 import { useSnapshot } from "valtio";
-import state from "../store";
+import {state} from "../store";
 import axiosInstance from "./../axiosConfig";
 
 const LoginForm = () => {
