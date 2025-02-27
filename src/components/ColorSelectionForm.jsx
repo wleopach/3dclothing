@@ -1,4 +1,5 @@
 import Nav from './Nav'
+import CurrentOrder  from "./CurrentOrder";
 import { useState, useEffect } from "react";
 import {Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, } from "formik";
@@ -82,6 +83,7 @@ const ColorSelectionForm = () => {
     return (
         <>
             <Nav/>
+            <CurrentOrder/>
             <Flex
                 minH="100vh"
                 align="center"

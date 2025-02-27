@@ -15,6 +15,8 @@ const state = proxy({
     user : {},
     userEmail : '',
     clientData : {},
+    productName : '', // Nombre del producto seleccionado
+    fabricName : '', //Nombre de la tela seleccionada
     stock: '',
     currentOrder: {
         "product_id":'',

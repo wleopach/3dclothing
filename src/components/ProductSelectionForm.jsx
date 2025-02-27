@@ -1,4 +1,5 @@
 import Nav from './Nav'
+import CurrentOrder  from "./CurrentOrder";
 import {useState, useEffect} from "react";
 import {Button, VStack, Box, Flex, Text} from "@chakra-ui/react";
 import {Formik, Form, Field} from "formik";
@@ -11,6 +12,8 @@ const ProductSelectionForm = () => {
     const [prendas, setPrendas] = useState([]);
     const [selectedStocks, setSelectedStocks] = useState([]);
     const [selectedDescriptions, setSelectedSDescriptions] = useState([]);
+    const [selectedProductName, setSelectedProductName] = useState("");
+    const [selectedStockDescription, setSelectedStockDescription] = useState("");
 
     useEffect(() => {
         const fetchPrendas = async () => {
@@ -29,6 +32,7 @@ const ProductSelectionForm = () => {
     return (
         <>
             <Nav/>
+            <CurrentOrder/>
             <Flex
                 minH="100vh"
                 align="center"
@@ -52,10 +56,14 @@ const ProductSelectionForm = () => {
                                 return;
                             }
                             console.log("Selection:", values);
+                            console.log("descs", selectedDescriptions);
                             state.currentOrder.product_id = values.productType;
                             console.log("current_order", state.currentOrder);
                             state.pickColor = true;
-                            state.stock = values.stock;
+                            state.stock = selectedStocks[values.stock];
+                            state.productName = selectedProductName;
+                            state.fabricName = selectedDescriptions[values.stock];
+                            console.log("FABRIC", state.fabricName);
                             //state.file_3d = `${values.productType}.glb`;
                             state.showProductForm = false;
                             setSubmitting(false);
@@ -74,21 +82,23 @@ const ProductSelectionForm = () => {
                                         name="productType"
                                         id="productType"
                                         onChange={(e) => {
-                                            const selectedProduct = e.target.value;
-                                            setFieldValue("productType", selectedProduct);
+                                            const selectedProductId = e.target.value;
+                                            setFieldValue("productType", selectedProductId);
 
-                                            // Find selected product's stocks and update the options
-                                            const product = prendas.find(p => p.id == selectedProduct);
-                                            setSelectedStocks(product ? product.stocks : []);
-                                            setSelectedSDescriptions(product ? product.descriptions : []);
+                                            const product = prendas.find(p => p.id == selectedProductId);
+
+                                            if (product) {
+                                                setSelectedStocks(product.stocks);
+                                                setSelectedSDescriptions(product.descriptions);
+                                                setSelectedProductName(product.name); // Store product name
+                                            } else {
+                                                setSelectedStocks([]);
+                                                setSelectedSDescriptions([]);
+                                                setSelectedProductName("");
+                                            }
+
                                             setFieldValue("stock", ""); // Reset stock selection
-                                        }}
-                                        style={{
-                                            width: "100%",      // Full width
-                                            height: "50px",     // Increase height
-                                            fontSize: "18px",   // Bigger text
-                                            padding: "10px",    // More padding inside
-                                            borderRadius: "8px" // Rounded corners
+                                            setSelectedStockDescription(""); // Reset description
                                         }}
                                     >
                                         <option value="">Seleccione una prenda</option>
@@ -99,29 +109,31 @@ const ProductSelectionForm = () => {
                                         ))}
                                     </Field>
 
-                                    {/* Stock Selection Dropdown (Depends on Product Type) */}
                                     <Field
                                         as="select"
                                         name="stock"
                                         id="stock"
                                         disabled={!values.productType}
-                                        style={{
-                                            width: "100%",
-                                            height: "50px",
-                                            fontSize: "18px",
-                                            padding: "10px",
-                                            borderRadius: "8px"
+                                        onChange={(e) => {
+                                            const selectedStockValue = e.target.value;
+                                            setFieldValue("stock", selectedStockValue);
+
+                                            const index = selectedStocks.indexOf(selectedStockValue);
+                                            if (index !== -1) {
+                                                setSelectedStockDescription(selectedDescriptions[index]); // Store stock description
+                                            } else {
+                                                setSelectedStockDescription("");
+                                            }
                                         }}
                                     >
-
                                         <option value="">Seleccione un stock</option>
                                         {selectedStocks.map((stock, index) => (
-                                            <option key={index} value={stock}>
-                                                {`${stock} - ${selectedDescriptions[index]}`} {/* Combine stock and description */}
+                                            <option key={index} value={index}>
+                                                {`${stock} - ${selectedDescriptions[index]}`}
                                             </option>
                                         ))}
-
                                     </Field>
+
 
                                     {/* Submit Button */}
 

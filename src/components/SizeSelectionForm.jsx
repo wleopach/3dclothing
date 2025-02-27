@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import axiosInstance from "../axiosConfig";
-import {state} from "../store";
+import {state, addToCart} from "../store";
 import { useSnapshot } from "valtio";
 
 const SizeSelectionForm = () => {
@@ -68,7 +68,7 @@ const SizeSelectionForm = () => {
                             state.currentOrder.size = values.talla;
                             state.currentOrder.quantity = values.quantity;
                             state.currentOrder.sex = values.sex;
-                            state.cart = [...state.cart, { ...state.currentOrder }];
+                            addToCart()
                             console.log("cart", state.cart);
                             setSubmitting(false);
                         }}
