@@ -1,9 +1,13 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.MODE === 'development'
+    ? 'http://localhost:8000/api_manufacturing'
+    : 'https://comerciolaroca.com/api_manufacturing';
+
 // Crear una instancia de axios
 const axiosInstance = axios.create({
-    //baseURL: 'https://comerciolaroca.com/api',
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: baseURL,
+    //baseURL: 'http://127.0.0.1:8000/api',//for local dev
     //baseURL: process.env.REACT_APP_API_URL,
     timeout: 10_000,
 

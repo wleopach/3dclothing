@@ -1,9 +1,10 @@
-import { Box, Text, Button } from "@chakra-ui/react";
+import {Box, Text, Button, useBreakpointValue, VStack} from "@chakra-ui/react";
 import { useSnapshot } from "valtio";
 import axiosInstance from "../axiosConfig"; // Import axios instance
 import {state, removeFromCart, checkout} from "../store";
 import Nav from "./Nav"; // Ensure Nav is properly imported
 import CustomButton from "./CustomButton";
+import CurrentProduct  from "./CurrentProduct";
 const Cart = () => {
     const snap = useSnapshot(state);
 
@@ -32,63 +33,82 @@ const Cart = () => {
             console.error("Error submitting order:", error.response?.data || error.message);
         }
     };
+// Responsive breakpoints
+    const containerMaxWidth = useBreakpointValue({ base: "90%", sm: "85%", md: "600px" });
+    const listMaxHeight = useBreakpointValue({ base: "200px", sm:"250px", md: "300px" });
+    const buttonSize = useBreakpointValue({ base: "sm", md: "md" });
 
     return (
         <>
-            <Nav /> {/* Include Nav */}
-            <Box p={4} borderWidth={1} borderRadius="lg" shadow="md" maxW="600px" mx="auto">
-                <Text fontSize="xl" fontWeight="bold" mb={4}>Listado de productos</Text>
+            <Nav />
+            <Box
+                p={{ base: 3, md: 4 }}
+                borderWidth={1}
+                borderRadius="lg"
+                shadow="md"
+                maxW={containerMaxWidth}
+                mx="auto"
+                bg="black"
+            >
+                <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold" mb={4}>
+                    Listado de productos
+                </Text>
 
                 {snap.cart.length === 0 ? (
                     <Text color="gray.500">Your cart is empty.</Text>
                 ) : (
-                    <>
+                    <VStack spacing={4} align="stretch">
                         <Box
                             as="ul"
-                            listStylePosition="inside"
+                            listStyleType="none"
                             spacing={4}
-                            maxHeight="300px"  // Set max height for scrolling
-                            overflowY="auto"   // Enable vertical scrolling
+                            maxHeight={listMaxHeight}
+                            overflowY="auto"
                             p={2}
                         >
                             {snap.cart.map((item, index) => (
                                 <Box
                                     as="li"
                                     key={index}
-                                    p={2}
+                                    p={3}
                                     borderWidth={1}
                                     borderRadius="lg"
                                     display="flex"
+                                    flexDirection={{ base: "column", md: "row" }}
                                     justifyContent="space-between"
-                                    alignItems="center"
+                                    alignItems={{ base: "stretch", md: "center" }}
                                     mb={2}
+                                    gap={2}
                                 >
-                                    <Box>
-                                        <Text fontWeight="semibold">Product ID: {item.product_id}</Text>
-                                        <Text>Talla: {item.size}</Text>
-                                        <Text>Cantidad: {item.quantity}</Text>
-                                        <Text>Correo: {item.client_email}</Text>
-                                        <Text>Sexo: {item.sex}</Text>
-                                    </Box>
+                                    <CurrentProduct
+                                        productName={item.productName}
+                                        fabricName={item.fabricName}
+                                        colorSelected={item.colorSelected}
+                                        codeSelected={item.codeSelected}
+                                        sex={item.sex}
+                                        size={item.size}
+                                        quantity={item.quantity}
+                                    />
                                     <Button
                                         colorScheme="red"
-                                        size="sm"
+                                        size={buttonSize}
                                         onClick={() => removeFromCart(index)}
+                                        alignSelf={{ base: "flex-end", md: "center" }}
+                                        color="#76040c"
                                     >
-                                        Remove
+                                        Remover
                                     </Button>
                                 </Box>
                             ))}
                         </Box>
 
-                        {/* Checkout Button */}
                         <CustomButton
                             type="filled"
                             title="Enviar Orden"
                             handleClick={handleCheckout}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />
-                    </>
+                    </VStack>
                 )}
             </Box>
         </>

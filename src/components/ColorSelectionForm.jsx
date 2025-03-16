@@ -1,7 +1,7 @@
 import Nav from './Nav'
 import CurrentOrder  from "./CurrentOrder";
 import { useState, useEffect } from "react";
-import {Button, VStack, Box, Flex, Text } from "@chakra-ui/react";
+import {Button, VStack, Box, Flex, Text, useBreakpointValue} from "@chakra-ui/react";
 import { Formik, Form, } from "formik";
 import axiosInstance from "../axiosConfig";
 import {state} from "../store";
@@ -15,6 +15,11 @@ const ColorSelectionForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [selectedColor, setSelectedColor] = useState(null);
+
+    // Responsive values
+    const colorBoxSize = useBreakpointValue({ base: "30px", sm: "35px", md: "40px" });
+    const fontSize = useBreakpointValue({ base: "xs", sm: "sm", md: "md" });
+    const headerFontSize = useBreakpointValue({ base: "lg", sm: "xl", md: "2xl" });
 
     // Fetch colors based on selected stock
     useEffect(() => {
@@ -89,12 +94,12 @@ const ColorSelectionForm = () => {
                 align="center"
                 justify="center"
                 bg="black"
-                p={[2, 4, 6]}
+                p={[1, 2, 4, 6]}
             >
                 <Box
                     w={["95%", "90%", "70%", "50%"]}
                     bg="black"
-                    p={[3, 4, 6]}
+                    p={[2, 3, 4, 6]}
                     borderRadius="lg"
                     boxShadow="2xl"
                     maxH={["80vh", "85vh", "90vh"]}
@@ -120,14 +125,14 @@ const ColorSelectionForm = () => {
                                 <VStack spacing={3} align="stretch" height="100%">
                                     {/* Fixed Header */}
                                     <Box flexShrink={0}>
-                                        <Text fontSize="xl" fontWeight="bold" color={snap.color} textAlign="center" mb={2}>
+                                        <Text fontSize={headerFontSize} fontWeight="bold" color={snap.color} textAlign="center" mb={2}>
                                             Seleccionar color
                                         </Text>
 
                                         {/* Display selected color information */}
                                         {selectedColor && (
                                             <Box textAlign="center" mb={3}>
-                                                <Text color={snap.color}>
+                                                <Text color={snap.color} fontSize={fontSize}>
                                                     Color seleccionado: {selectedColor.code}
                                                 </Text>
                                                 <Box
@@ -144,7 +149,7 @@ const ColorSelectionForm = () => {
                                     </Box>
 
                                     {/* Scrollable Colors Container */}
-                                    <Text color="white" flexShrink={0}>Colores disponibles:</Text>
+                                    <Text color="white"  fontSize={fontSize}  flexShrink={0}>Colores disponibles:</Text>
                                     <Box
                                         overflowY="auto"
                                         flexGrow={1}
@@ -178,14 +183,15 @@ const ColorSelectionForm = () => {
                                         }}
                                     >
                                         {loading ? (
-                                            <Text color="white" textAlign="center" py={4}>Cargando colores...</Text>
+                                            <Text color="white" textAlign="center" py={2} fontSize={fontSize}>Cargando colores...</Text>
                                         ) : colorsData.length === 0 ? (
-                                            <Text color="white" textAlign="center" py={4}>No hay colores disponibles</Text>
+                                            <Text color="white" textAlign="center" py={2} fontSize={fontSize}>No hay colores disponibles</Text>
                                         ) : (
                                             <Flex
                                                 wrap="wrap"
                                                 justify="center"
-                                                gap={2}
+                                                gap={[1, 2]}
+                                                px={[0, 1]}
                                             >
                                                 {colorsData.map((colorData, index) => (
                                                     <Box
@@ -214,6 +220,8 @@ const ColorSelectionForm = () => {
                                                             fontSize="xs"
                                                             textAlign="center"
                                                             mt={1}
+                                                            isTruncated
+                                                            maxW={colorBoxSize}
                                                         >
                                                             {colorData.code}
                                                         </Text>
