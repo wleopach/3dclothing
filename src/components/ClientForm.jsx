@@ -3,8 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useSnapshot } from "valtio";
 import {state} from "../store";
-
-const ClientInfoForm = () => {
+import axiosInstance from "../axiosConfig";
+const ClientForm = () => {
     const snap = useSnapshot(state);
 
     return (
@@ -26,16 +26,39 @@ const ClientInfoForm = () => {
                             .required("Required"),
                         orderDetails: Yup.string().required("Required"),
                     })}
-                    onSubmit={(values, { setSubmitting }) => {
+                    onSubmit={ async  (values, { setSubmitting }) => {
                         console.log("Order Submitted", values);
 
-                        // Update the state correctly
-                        state.clientData = values
-                        state.currentOrder.client_email = values.email
-                        console.log("current_order",state.currentOrder);
-                        state.showForm = false;
-                        state.showProductForm = true
+                        try {
+                            const response = await axiosInstance.post(
+                                "/clientes/register/",
+                                {
+                                    cc : state.cc,
+                                    name: values.name,
+                                    email: values.email,
+                                    cellphone: values.phone,
+                                    description: values.orderDetails,
+                                }
+                            );
+                            if (response.status === 201 || response.status === 200) {
+                                console.log("Client registered:", response.data);
 
+                                // Update state after successful registration
+                                state.clientData = values;
+                                state.currentOrder.client_email = values.email;
+                                state.currentOrder.client_cc = state.cc;
+
+                                console.log("Current Order:", state.currentOrder);
+
+                                // Move to the next step
+                                state.showForm = false;
+                                state.showProductForm = true;
+                            } else {
+                                console.error("Unexpected response:", response);
+                            }
+                        } catch (error) {
+                            console.error("Error registering client:", error);
+                        }
                         setSubmitting(false);
                     }}
                 >
@@ -82,4 +105,4 @@ const ClientInfoForm = () => {
     );
 };
 
-export default ClientInfoForm;
+export default ClientForm;

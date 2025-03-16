@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import {
     CustomButton,
     Cart,
-    ClientInfoForm,
+    ClientPage,
     ProductSelectionForm,
     ColorSelectionForm,
     SizeSelectionForm,
@@ -26,7 +26,7 @@ const Home = () => {
             {snap.isUnLogged ? (
                 <LoginForm />
             ) : snap.showForm ? (
-                <ClientInfoForm
+                <ClientPage
                 />
             ) : snap.showProductForm ? (
                 <ProductSelectionForm/>

@@ -37,7 +37,7 @@ const Cart = () => {
     const containerMaxWidth = useBreakpointValue({ base: "90%", sm: "85%", md: "600px" });
     const listMaxHeight = useBreakpointValue({ base: "200px", sm:"250px", md: "300px" });
     const buttonSize = useBreakpointValue({ base: "sm", md: "md" });
-
+    console.log("Client cart",snap.cart);
     return (
         <>
             <Nav />

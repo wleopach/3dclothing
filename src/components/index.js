@@ -1,5 +1,5 @@
 import CustomButton from './CustomButton';
-import ClientInfoForm from './ClientForm';
+import ClientPage from './ClientPage';
 import AIPicker from './AIPicker';
 import ColorPicker from './ColorPicker';
 import FilePicker from './FilePicker';
@@ -15,7 +15,7 @@ export {
     FilePicker,
     ColorPicker,
     AIPicker,
-    ClientInfoForm,
+    ClientPage,
     ProductSelectionForm,
     ColorSelectionForm,
     SizeSelectionForm,
