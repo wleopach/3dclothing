@@ -20,9 +20,7 @@ const Cart = () => {
         try {
             const cart = snap.cart.map(order => ({
                 ...order,
-                client_celphone: snap.clientData.phone || '',
-                client_name: snap.clientData.name|| '',
-                description: snap.clientData.orderDetails || ''
+                client_cc: snap.clientData.cc
             }));
             const response = await axiosInstance.post("/orders/",  cart);
             console.log("Order placed successfully:", response.data);

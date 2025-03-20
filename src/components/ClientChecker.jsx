@@ -21,7 +21,10 @@ const ClientChecker = () => {
 
             if (response.data.exists) {
                 state.registered=true;
-                state.showProductForm = true
+                state.clientData = response.data.cliente;
+                state.showForm = false;
+                state.showProductForm = true;
+
             } else {
                 setError("Cliente no encontrado. Complete el formulario.");
                 state.registered = false;
