@@ -53,7 +53,12 @@ const ClientChecker = () => {
                     }}
                 />
 
-                <Button onClick={checkCliente} colorScheme="yellow" width="full">
+                <Button
+                    bg={snap.color}
+                    onClick={checkCliente}
+                    color="black"
+                    colorScheme="yellow"
+                    width="full">
                     Buscar Cliente
                 </Button>
 
