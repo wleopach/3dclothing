@@ -4,6 +4,7 @@ const state = proxy({
     registered: true,
     intro: true,
     showCart: false,
+    showPanel: false,
     color:'#EFBD48',
     isLogoTexture: true,
     isFullTexture: false,

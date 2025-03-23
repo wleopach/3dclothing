@@ -1,4 +1,4 @@
-import {HStack, Image, Button, useBreakpointValue, IconButton} from "@chakra-ui/react";
+import {HStack, Image, useBreakpointValue, IconButton} from "@chakra-ui/react";
 import {useSnapshot} from "valtio";
 import {state} from "../store"; // Import Valtio state
 import logo from "../assets/images/logo.png";

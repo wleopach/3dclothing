@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button, Input, VStack, Box, Flex, Text } from "@chakra-ui/react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useState } from "react";
@@ -7,6 +8,7 @@ import {state} from "../store";
 import axiosInstance from "./../axiosConfig";
 
 const LoginForm = () => {
+    const navigate = useNavigate();
     const snap = useSnapshot(state);
     const [eMessage, setEMessage] = useState(""); // Store login error message
 
@@ -27,7 +29,8 @@ const LoginForm = () => {
             state.userEmail = values.email;
             state.user = userData;
             state.isUnLogged=false;
-            state.showForm = true;
+            state.showPanel = true;
+            navigate("/control-panel");
             localStorage.setItem("token", userData.access); // Store token in localStorage
         } catch (err) {
             console.error("Login failed:", err.response ? err.response.data : err.message);

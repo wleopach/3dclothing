@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input, Button, VStack, Text, Flex } from "@chakra-ui/react";
 import axiosInstance from "../axiosConfig";
 import { useSnapshot } from "valtio";
@@ -6,6 +7,7 @@ import {state} from "../store";
 
 // eslint-disable-next-line react/prop-types
 const ClientChecker = () => {
+    const navigate = useNavigate();
     const snap = useSnapshot(state);
     const [cc, setCC] = useState("");
     const [error, setError] = useState("");
@@ -24,6 +26,7 @@ const ClientChecker = () => {
                 state.clientData = response.data.cliente;
                 state.showForm = false;
                 state.showProductForm = true;
+                navigate("/product");
 
             } else {
                 setError("Cliente no encontrado. Complete el formulario.");
