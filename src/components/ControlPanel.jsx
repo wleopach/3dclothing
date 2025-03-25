@@ -1,4 +1,4 @@
-import { VStack, Text, Flex, Box } from "@chakra-ui/react";
+import { VStack, Text, Flex, Box, useBreakpointValue } from "@chakra-ui/react";
 import { MdAddCircle } from "react-icons/md";
 import { FaClipboardList } from "react-icons/fa";
 import { useSnapshot } from "valtio";
@@ -9,6 +9,12 @@ function ControlPanel() {
     const snap = useSnapshot(state);
     const navigate = useNavigate();
 
+    // Responsive adjustments
+    const flexDirection = useBreakpointValue({ base: "column", md: "row" });
+    const buttonWidth = useBreakpointValue({ base: "100%", md: "200px" });
+    const spacing = useBreakpointValue({ base: 4, md: 6 });
+    const iconSize = useBreakpointValue({ base: 30, md: 40 });
+
     const handleCreateOrder = () => {
         navigate("/control-panel/client");
     };
@@ -18,15 +24,33 @@ function ControlPanel() {
     };
 
     return (
-        <Flex minH="100vh" align="center" justify="center" bg="black" p={4}>
-            <VStack spacing={6}>
-                <Text color="white" fontSize="2xl" mb={4}>Selecciona una de las opciones</Text>
-                <Flex gap={6}>
+        <Flex
+            minH="100vh"
+            align="center"
+            justify="center"
+            bg="black"
+            p={4}
+        >
+            <VStack spacing={spacing} w="full" maxW="container.xl">
+                <Text
+                    color="white"
+                    fontSize={["xl", "2xl"]}
+                    textAlign="center"
+                    mb={4}
+                >
+                    Selecciona una de las opciones
+                </Text>
+                <Flex
+                    gap={[4, 6]}
+                    flexDirection={flexDirection}
+                    w="full"
+                    justifyContent="center"
+                >
                     <Box
                         as="button"
                         onClick={handleCreateOrder}
                         bg={snap.color}
-                        p={8}
+                        p={[4, 8]}
                         borderRadius="xl"
                         boxShadow="2xl"
                         _hover={{
@@ -35,10 +59,22 @@ function ControlPanel() {
                         }}
                         transition="all 0.2s"
                         textAlign="center"
-                        width="200px"
+                        width={buttonWidth}
+                        mb={flexDirection === "column" ? 4 : 0}
                     >
-                        <MdAddCircle size={40} color="black" style={{ marginBottom: "1rem", margin: "0 auto" }} />
-                        <Text fontSize="xl" fontWeight="bold" color="black">
+                        <MdAddCircle
+                            size={iconSize}
+                            color="black"
+                            style={{
+                                marginBottom: "1rem",
+                                margin: "0 auto"
+                            }}
+                        />
+                        <Text
+                            fontSize={["lg", "xl"]}
+                            fontWeight="bold"
+                            color="black"
+                        >
                             Ingresar órden
                         </Text>
                     </Box>
@@ -47,7 +83,7 @@ function ControlPanel() {
                         as="button"
                         onClick={handleViewOrders}
                         bg={snap.color}
-                        p={8}
+                        p={[4, 8]}
                         borderRadius="xl"
                         boxShadow="2xl"
                         _hover={{
@@ -56,17 +92,28 @@ function ControlPanel() {
                         }}
                         transition="all 0.2s"
                         textAlign="center"
-                        width="200px"
+                        width={buttonWidth}
                     >
-                        <FaClipboardList size={40} color="black" style={{ marginBottom: "1rem", margin: "0 auto" }} />
-                        <Text fontSize="xl" fontWeight="bold" color="black">
+                        <FaClipboardList
+                            size={iconSize}
+                            color="black"
+                            style={{
+                                marginBottom: "1rem",
+                                margin: "0 auto"
+                            }}
+                        />
+                        <Text
+                            fontSize={["lg", "xl"]}
+                            fontWeight="bold"
+                            color="black"
+                        >
                             Ver órdenes
                         </Text>
                     </Box>
                 </Flex>
             </VStack>
         </Flex>
-    )
+    );
 }
 
-export default ControlPanel
+export default ControlPanel;

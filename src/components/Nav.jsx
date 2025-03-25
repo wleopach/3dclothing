@@ -2,7 +2,7 @@ import {HStack, Image, useBreakpointValue, IconButton} from "@chakra-ui/react";
 import {useSnapshot} from "valtio";
 import {state} from "../store"; // Import Valtio state
 import logo from "../assets/images/logo.png";
-// import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
+import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
 import {LuSearch} from "react-icons/lu";
 import CustomButton from "./CustomButton";
 import { useNavigate } from 'react-router-dom';
