@@ -6,8 +6,10 @@ import {Formik, Form, Field} from "formik";
 import {useSnapshot} from "valtio";
 import {state} from "../store";
 import axiosInstance from "./../axiosConfig";
+import { useNavigate } from 'react-router-dom';
 
 const ProductSelectionForm = () => {
+    const navigate = useNavigate();
     const snap = useSnapshot(state);
     const [prendas, setPrendas] = useState([]);
     const [selectedStocks, setSelectedStocks] = useState([]);
@@ -66,6 +68,7 @@ const ProductSelectionForm = () => {
                             //state.file_3d = `${values.productType}.glb`;
                             state.showProductForm = false;
                             setSubmitting(false);
+                            navigate("/control-panel/color");
                         }}
                     >
                         {({values, setFieldValue, isSubmitting}) => (

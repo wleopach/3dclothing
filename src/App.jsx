@@ -9,25 +9,28 @@ import SizeSelectionForm from "./components/SizeSelectionForm";
 import ControlPanel from "./components/ControlPanel";
 import Cart from "./components/Cart";
 import Orders from "./components/Orders.jsx";
-import {Provider} from "./components/ui/provider"
+import { Provider } from "./components/ui/provider"
+import Home from "./components/Home";
+
 function App() {
 
     return (
-    <Provider>
-        <Router>
-            <Routes>
-                <Route path="/" element={<LoginForm />} />
-                <Route path="/control-panel" element={<ControlPanel />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/client" element={<ClientPage />} />
-                <Route path="/product" element={<ProductSelectionForm />} />
-                <Route path="/color" element={<ColorSelectionForm />} />
-                <Route path="/size" element={<SizeSelectionForm />} />
-                <Route path="/cart" element={<Cart />} />
-
-            </Routes>
-        </Router>
-    </Provider>
+        <Provider>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<LoginForm />} />
+                    <Route path="/control-panel" element={<Home />}>
+                        <Route index element={<ControlPanel />} />
+                        <Route path="orders" element={<Orders />} />
+                        <Route path="client" element={<ClientPage />} />
+                        <Route path="product" element={<ProductSelectionForm />} />
+                        <Route path="color" element={<ColorSelectionForm />} />
+                        <Route path="size" element={<SizeSelectionForm />} />
+                        <Route path="cart" element={<Cart />} />
+                    </Route>
+                </Routes>
+            </Router>
+        </Provider>
 
 
     )

@@ -12,7 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.7.0",
+    "@chakra-ui/react": "^3.14.0",
     "@emotion/react": "^11.14.0",
     "@react-three/drei": "^9.120.8",
     "@react-three/fiber": "^8.17.12",

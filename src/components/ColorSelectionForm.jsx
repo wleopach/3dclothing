@@ -6,11 +6,12 @@ import { Formik, Form, } from "formik";
 import axiosInstance from "../axiosConfig";
 import {state} from "../store";
 import { useSnapshot } from "valtio";
-
+import { useNavigate } from 'react-router-dom';
 
 
 const ColorSelectionForm = () => {
     const snap = useSnapshot(state);
+    const navigate = useNavigate();
     const [colorsData, setColorsData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -118,6 +119,7 @@ const ColorSelectionForm = () => {
                             state.currentOrder.codeSelected = selectedColor.code;
                             state.currentOrder.colorSelected = selectedColor.color;
                             setSubmitting(false);
+                            navigate("/control-panel/size");
                         }}
                     >
                         {({ values, setFieldValue, isSubmitting }) => (

@@ -26,7 +26,7 @@ const ClientChecker = () => {
                 state.clientData = response.data.cliente;
                 state.showForm = false;
                 state.showProductForm = true;
-                navigate("/product");
+                navigate("/control-panel/product");
 
             } else {
                 setError("Cliente no encontrado. Complete el formulario.");
@@ -50,6 +50,7 @@ const ClientChecker = () => {
                     color="white"
                     borderColor="yellow.400"
                     value={cc}
+                    p={2}
                     onChange={(e) => {
                         setCC(e.target.value);
                         state.cc = e.target.value;

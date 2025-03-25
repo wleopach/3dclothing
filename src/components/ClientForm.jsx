@@ -10,7 +10,7 @@ const ClientForm = () => {
     return (
         <Flex minH="100vh" align="center" justify="center" bg="black" p={4}>
             <Box
-                w={{ base: "90%", md: "50%", lg: "40%" }} // Responsive width
+                w={{ base: "90%", md: "100%", lg: "100%" }} // Responsive width
                 bg="black"
                 p={6}
                 borderRadius="lg"

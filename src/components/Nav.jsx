@@ -2,13 +2,15 @@ import {HStack, Image, useBreakpointValue, IconButton} from "@chakra-ui/react";
 import {useSnapshot} from "valtio";
 import {state} from "../store"; // Import Valtio state
 import logo from "../assets/images/logo.png";
-import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
+// import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
 import {LuSearch} from "react-icons/lu";
 import CustomButton from "./CustomButton";
+import { useNavigate } from 'react-router-dom';
 
 export default function Nav() {
     const snap = useSnapshot(state);
     const isDesktop = useBreakpointValue({base: false, lg: true});
+    const navigate = useNavigate();
 
     if (!snap.cart.length > 0 && snap.justCheckedOut) return (
         <nav>
@@ -112,6 +114,7 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showCart = false;
+                                    navigate('/control-panel/product');
                                 }}
                                 customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                             />) : null
@@ -126,6 +129,7 @@ export default function Nav() {
                                 state.showProductForm = false;
                                 state.pickColor = true;
                                 state.showCart = false;
+                                navigate('/control-panel/color');
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />) : null
@@ -140,6 +144,7 @@ export default function Nav() {
                                 state.showProductForm = false;
                                 state.pickColor = false;
                                 state.showCart = false;
+                                navigate('/control-panel/size');
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />): null
@@ -153,6 +158,7 @@ export default function Nav() {
                                 state.pickSize = false;
                                 state.pickColor = false;
                                 state.showProductForm = false;
+                                navigate('/control-panel/cart');
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />): null

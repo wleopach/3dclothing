@@ -8,7 +8,6 @@ import CurrentProduct  from "./CurrentProduct";
 const Cart = () => {
     const snap = useSnapshot(state);
 
-    if (!snap.showCart) return null;
     console.log("Client data",snap.clientData)
 
     const handleCheckout = async () => {

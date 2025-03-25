@@ -6,9 +6,11 @@ import { Formik, Form, Field } from "formik";
 import axiosInstance from "../axiosConfig";
 import {state, addToCart} from "../store";
 import { useSnapshot } from "valtio";
+import { useNavigate } from 'react-router-dom';
 
 const SizeSelectionForm = () => {
     const snap = useSnapshot(state);
+    const navigate = useNavigate();
     const [tallasData, setTallasData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -100,6 +102,7 @@ const SizeSelectionForm = () => {
                             addToCart()
                             console.log("cart", state.cart);
                             setSubmitting(false);
+                            navigate("/control-panel/cart");
                         }}
                     >
                         {({ values, setFieldValue, isSubmitting }) => (

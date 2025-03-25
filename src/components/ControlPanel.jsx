@@ -1,40 +1,69 @@
-import {Button, VStack, Text, Flex } from "@chakra-ui/react";
+import { VStack, Text, Flex, Box } from "@chakra-ui/react";
+import { MdAddCircle } from "react-icons/md";
+import { FaClipboardList } from "react-icons/fa";
 import { useSnapshot } from "valtio";
-import {state} from "../store";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
+import { state } from "../store";
+import { Outlet, useNavigate } from "react-router-dom";
+
 function ControlPanel() {
     const snap = useSnapshot(state);
-    const navigate = useNavigate(); // Initialize navigation
-    // Handlers for navigation
+    const navigate = useNavigate();
+
     const handleCreateOrder = () => {
-        navigate("/client"); // Navigate to create order page
+        navigate("/control-panel/client");
     };
 
     const handleViewOrders = () => {
-        navigate("/orders"); // Navigate to view orders page
+        navigate("/control-panel/orders");
     };
+
     return (
         <Flex minH="100vh" align="center" justify="center" bg="black" p={4}>
-            <VStack spacing={2}>
-                <Text color="white">Selecciona una de las opciones</Text>
-                <Button
-                    bg={snap.color}
-                    color="black !important"
-                    colorScheme="yellow"
-                    width="full"
-                    onClick={handleCreateOrder} // Navigate on click
-                >
-                    Ingresar órden
-                </Button>
-                <Button
-                    bg={snap.color}
-                    color="black !important"
-                    colorScheme="yellow"
-                    width="full"
-                    onClick={handleViewOrders} // Navigate on click
-                >
-                    Ver órdenes
-                </Button>
+            <VStack spacing={6}>
+                <Text color="white" fontSize="2xl" mb={4}>Selecciona una de las opciones</Text>
+                <Flex gap={6}>
+                    <Box
+                        as="button"
+                        onClick={handleCreateOrder}
+                        bg={snap.color}
+                        p={8}
+                        borderRadius="xl"
+                        boxShadow="2xl"
+                        _hover={{
+                            transform: 'translateY(-5px)',
+                            boxShadow: '3xl',
+                        }}
+                        transition="all 0.2s"
+                        textAlign="center"
+                        width="200px"
+                    >
+                        <MdAddCircle size={40} color="black" style={{ marginBottom: "1rem", margin: "0 auto" }} />
+                        <Text fontSize="xl" fontWeight="bold" color="black">
+                            Ingresar órden
+                        </Text>
+                    </Box>
+
+                    <Box
+                        as="button"
+                        onClick={handleViewOrders}
+                        bg={snap.color}
+                        p={8}
+                        borderRadius="xl"
+                        boxShadow="2xl"
+                        _hover={{
+                            transform: 'translateY(-5px)',
+                            boxShadow: '3xl',
+                        }}
+                        transition="all 0.2s"
+                        textAlign="center"
+                        width="200px"
+                    >
+                        <FaClipboardList size={40} color="black" style={{ marginBottom: "1rem", margin: "0 auto" }} />
+                        <Text fontSize="xl" fontWeight="bold" color="black">
+                            Ver órdenes
+                        </Text>
+                    </Box>
+                </Flex>
             </VStack>
         </Flex>
     )
