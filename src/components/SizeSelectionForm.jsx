@@ -176,6 +176,7 @@ const SizeSelectionForm = () => {
                                                         minW={isSizeButtonsCompact ? "35px" : "40px"}
                                                         height={isSizeButtonsCompact ? "35px" : "40px"}
                                                         px={isSizeButtonsCompact ? 1 : 2}
+                                                        background={snap.color}
                                                     >
                                                         {talla}
                                                     </Button>

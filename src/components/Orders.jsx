@@ -38,7 +38,27 @@ function Orders() {
 
     const inputHeight = useBreakpointValue({ base: "36px", sm: "40px", md: "40px" });
     const inputFontSize = useBreakpointValue({ base: "14px", sm: "16px", md: "16px" });
+    // Función para colores
+    const getRgbColor = (colorStr) => {
+        if (!colorStr || typeof colorStr !== "string") {
+            return "gray"; // Default color if invalid
+        }
 
+        try {
+            // Extract the numbers from the tuple string format "(251,251,251)"
+            const rgbMatch = colorStr.match(/\((\d+),(\d+),(\d+)\)/);
+            if (rgbMatch && rgbMatch.length === 4) {
+                const [_, r, g, b] = rgbMatch;
+                return `rgb(${r}, ${g}, ${b})`;
+            } else {
+                console.warn("Invalid color format:", colorStr);
+                return "gray";
+            }
+        } catch (error) {
+            console.error("Error parsing color:", error);
+            return "gray";
+        }
+    };
     // Función para obtener los vendedores
     const fetchSellers = async () => {
         try {
@@ -458,8 +478,11 @@ function Orders() {
                                             <Text fontWeight="bold" color="gray.700" fontSize="sm">Producto</Text>
                                             <Text color="gray.900">{order.prenda?.name}</Text>
                                             <Flex gap={2} mt={1}>
-                                                <Badge colorScheme="purple" fontSize="xs">Talla: {order.size}</Badge>
-                                                <Badge colorScheme="green" fontSize="xs">Cantidad: {order.quantity}</Badge>
+                                                <VStack spacing={2} p={3} align="stretch">
+                                                    <Badge colorScheme="purple" fontSize="xs">Talla: {order.size}</Badge>
+                                                    <Badge colorScheme="green" fontSize="xs">Cantidad: {order.quantity}</Badge>
+                                                </VStack>
+
                                             </Flex>
                                         </Box>
                                     </Grid>
@@ -468,7 +491,19 @@ function Orders() {
                                         <Box>
                                             <Text fontWeight="bold" color="gray.700" fontSize="sm">Tela</Text>
                                             <Text color="gray.900" fontSize="sm">Código: {order.tela?.code}</Text>
-                                            <Text color="gray.900" fontSize="sm">Color: {order.tela?.color}</Text>
+                                            <HStack spacing={2} p={3} align="stretch">
+                                                <Text color="gray.900" fontSize="sm">Color: </Text>
+                                                <Box
+                                                    width="20px"
+                                                    height="20px"
+                                                    borderRadius="md"
+                                                    backgroundColor={getRgbColor(order.tela?.color)}
+                                                    margin="0 auto"
+                                                    mt={1}
+                                                    border="2px solid white"
+                                                />
+                                            </HStack>
+
                                         </Box>
 
                                         <Box>
