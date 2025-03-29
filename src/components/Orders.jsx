@@ -158,7 +158,7 @@ function Orders() {
                                 borderColor="gray.200"
                             >
                                 <Stack spacing={4} direction={{ base: "column", md: "row" }} align="flex-end">
-                                    <Box flex="1">
+                                    <Box flex="1" width="100%">
                                         <Text mb={2} fontWeight="semibold" color="gray.700">Número de Documento del Cliente</Text>
                                         <Field
                                             as={Input}
@@ -177,7 +177,7 @@ function Orders() {
                                         />
                                     </Box>
 
-                                    <Box flex="1">
+                                    <Box flex="1" width="100%">
                                         <Text mb={2} fontWeight="semibold" color="gray.700">
                                             Vendedor
                                         </Text>
@@ -196,7 +196,7 @@ function Orders() {
                                         </Field>
                                     </Box>
 
-                                    <Box flex="1">
+                                    <Box flex="1" width="100%">
                                         <Text mb={2} fontWeight="semibold" color="gray.700">Fecha Inicio</Text>
                                         <Field
                                             as={Input}
@@ -212,7 +212,7 @@ function Orders() {
                                         />
                                     </Box>
 
-                                    <Box flex="1">
+                                    <Box flex="1" width="100%">
                                         <Text mb={2} fontWeight="semibold" color="gray.700">Fecha Fin</Text>
                                         <Field
                                             as={Input}
@@ -319,7 +319,7 @@ function Orders() {
                         size="sm"
                         colorScheme="blue"
                         onClick={() => handlePageChange(currentPage - 1)}
-                        isDisabled={currentPage <= 1}
+                        disabled={currentPage <= 1}
                     >
                         ←
                     </Button>
@@ -351,7 +351,7 @@ function Orders() {
                         size="sm"
                         colorScheme="blue"
                         onClick={() => handlePageChange(currentPage + 1)}
-                        isDisabled={currentPage >= totalPages}
+                        disabled={currentPage >= totalPages}
                     >
                         →
                     </Button>

@@ -36,7 +36,6 @@ const ProductSelectionForm = () => {
             <Nav/>
             <CurrentOrder/>
             <Flex
-                minH="100vh"
                 align="center"
                 justify="center"
                 bg="black"

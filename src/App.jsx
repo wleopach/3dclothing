@@ -1,6 +1,4 @@
-//import CanvasModel from './canvas'
-//import Customizer from "./pages/Customizer.jsx";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import LoginForm from "./components/Login";
 import ClientPage from "./components/ClientPage";
 import ProductSelectionForm from "./components/ProductSelectionForm";
@@ -13,10 +11,9 @@ import { Provider } from "./components/ui/provider"
 import Home from "./components/Home";
 
 function App() {
-
     return (
         <Provider>
-            <Router>
+            <HashRouter >
                 <Routes>
                     <Route path="/" element={<LoginForm />} />
                     <Route path="/control-panel" element={<Home />}>
@@ -29,7 +26,7 @@ function App() {
                         <Route path="cart" element={<Cart />} />
                     </Route>
                 </Routes>
-            </Router>
+            </HashRouter>
         </Provider>
 
 

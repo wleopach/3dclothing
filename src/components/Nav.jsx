@@ -34,7 +34,9 @@ export default function Nav() {
                                 state.pickColor = false;
                                 state.showCart = false;
                                 state.showForm = true;
-                                state.clientData = {}
+                                state.clientData = {};
+                                state.currentOrder = {};
+                                navigate("/control-panel")
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />
@@ -47,6 +49,7 @@ export default function Nav() {
                                 state.showProductForm = true;
                                 state.pickColor = false;
                                 state.showCart = false;
+                                navigate("/control-panel/product")
                             }}
                             customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
                         />
@@ -69,6 +72,8 @@ export default function Nav() {
                                     state.showCart = false;
                                     state.showClientForm = true;
                                     state.clientData = {}
+                                    state.currentOrder = {};
+                                    navigate("/control-panel")
                                 }}
                             >
                                 Nuevo Cliente
@@ -80,6 +85,7 @@ export default function Nav() {
                                     state.showProductForm = true;
                                     state.pickColor = false;
                                     state.showCart = false;
+                                    navigate("/control-panel/product")
                                 }}
                             >
                                 Agregar otro producto
@@ -179,6 +185,8 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showCart = false;
+                                    navigate('/control-panel/product');
+
                                 }}
                             >
                                 Prendas
@@ -190,6 +198,7 @@ export default function Nav() {
                                     state.showProductForm = false;
                                     state.pickSize = false;
                                     state.showCart = false;
+                                    navigate('/control-panel/color');
                                 }}
                             >
                                 Colores
@@ -201,6 +210,7 @@ export default function Nav() {
                                     state.showProductForm = false;
                                     state.pickColor = false;
                                     state.showCart = false;
+                                    navigate('/control-panel/size');
                                 }}
                             >
                                 Tallas
@@ -212,6 +222,7 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showProductForm = false;
+                                    navigate('/control-panel/cart');
                                 }}
                             >
                                 Carrito

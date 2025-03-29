@@ -45,7 +45,7 @@ const Cart = () => {
                 shadow="md"
                 maxW={containerMaxWidth}
                 mx="auto"
-                bg="white"
+                bg="black"
             >
                 <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold" mb={4}>
                     Listado de productos

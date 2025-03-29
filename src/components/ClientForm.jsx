@@ -4,9 +4,10 @@ import * as Yup from "yup";
 import { useSnapshot } from "valtio";
 import {state} from "../store";
 import axiosInstance from "../axiosConfig";
+import { useNavigate } from 'react-router-dom';
 const ClientForm = () => {
     const snap = useSnapshot(state);
-
+    const navigate = useNavigate();
     return (
         <Flex minH="100vh" align="center" justify="center" bg="black" p={4}>
             <Box
@@ -44,13 +45,14 @@ const ClientForm = () => {
                                 console.log("Client registered:", response.data);
 
                                 // Update state after successful registration
-                                state.clientData = values;
+                                state.clientData = { ...values, cc: state.cc };
                                 state.currentOrder.client_email = values.email;
                                 state.currentOrder.client_cc = state.cc;
 
                                 console.log("Current Order:", state.currentOrder);
 
                                 // Move to the next step
+                                navigate("/control-panel/product");
                                 state.showForm = false;
                                 state.showProductForm = true;
                             } else {
