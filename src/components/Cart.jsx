@@ -32,12 +32,11 @@ const Cart = () => {
     };
 // Responsive breakpoints
     const containerMaxWidth = useBreakpointValue({ base: "90%", sm: "85%", md: "600px" });
-    const listMaxHeight = useBreakpointValue({ base: "200px", sm:"250px", md: "300px" });
+    const listMaxHeight = useBreakpointValue({ base: "200px", sm:"250px", md: "90vh" });
     const buttonSize = useBreakpointValue({ base: "sm", md: "md" });
     console.log("Client cart",snap.cart);
     return (
         <>
-            <Nav />
             <Box
                 p={{ base: 3, md: 4 }}
                 borderWidth={1}

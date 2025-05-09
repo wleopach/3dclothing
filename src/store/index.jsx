@@ -6,6 +6,7 @@ const state = proxy({
     showCart: false,
     showPanel: false,
     color:'#EFBD48',
+    colorGreen:'#008000',
     isLogoTexture: true,
     isFullTexture: false,
     logoDecal:'./threejs.png',
@@ -18,6 +19,7 @@ const state = proxy({
     user : {},
     userEmail : '',
     clientData : {},
+    colorsData: [],
     currentOrder: {
         "product_id":'',
         "tela_id":'',
@@ -30,7 +32,9 @@ const state = proxy({
         "fabricName" : '', //Nombre de la tela seleccionada
         "colorSelected":'',
         "codeSelected":'',
-        "stock": ''
+        "stock": '',
+        "prenda": '',
+        "details": {}
     },
     pickSize: false,
     cart:[],

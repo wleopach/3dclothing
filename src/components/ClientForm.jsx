@@ -52,7 +52,7 @@ const ClientForm = () => {
                                 console.log("Current Order:", state.currentOrder);
 
                                 // Move to the next step
-                                navigate("/control-panel/product");
+                                navigate("/control-panel/current-order/product");
                                 state.showForm = false;
                                 state.showProductForm = true;
                             } else {

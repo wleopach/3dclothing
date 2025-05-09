@@ -1,5 +1,3 @@
-import Nav from './Nav'
-import CurrentOrder  from "./CurrentOrder";
 import { useState, useEffect } from "react";
 import {Button, VStack, Box, Flex, Text, useBreakpointValue} from "@chakra-ui/react";
 import { Formik, Form, } from "formik";
@@ -12,10 +10,10 @@ import { useNavigate } from 'react-router-dom';
 const ColorSelectionForm = () => {
     const snap = useSnapshot(state);
     const navigate = useNavigate();
-    const [colorsData, setColorsData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [selectedColor, setSelectedColor] = useState(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // Responsive values
     const colorBoxSize = useBreakpointValue({ base: "30px", sm: "35px", md: "40px" });
@@ -34,7 +32,6 @@ const ColorSelectionForm = () => {
                     params: { stock: snap.currentOrder.stock }
                 });
                 const telaData = response.data;
-                console.log("telas",telaData);
                 if (Array.isArray(telaData)) {
                     // Keep the full tela object to maintain both color RGB and code
                     const colorOptions = telaData.map(tela => ({
@@ -46,8 +43,19 @@ const ColorSelectionForm = () => {
                     const uniqueOptions = colorOptions.filter((option, index, self) =>
                         index === self.findIndex((t) => t.code === option.code)
                     );
-                    setColorsData(uniqueOptions);
+                    state.colorsData = uniqueOptions;
+
+                    // Si hay un color seleccionado en el estado, buscarlo y seleccionarlo
+                    if (state.currentOrder.tela_id) {
+                        const savedColor = uniqueOptions.find(
+                            color => color.id === state.currentOrder.tela_id
+                        );
+                        if (savedColor) {
+                            setSelectedColor(savedColor);
+                        }
+                    }
                 }
+                setIsInitialized(true);
             } catch (error) {
                 setError("Failed to fetch colors.");
                 console.error("Error fetching colors:", error);
@@ -86,15 +94,23 @@ const ColorSelectionForm = () => {
         setSelectedColor(colorData);
     };
 
+    // Valores iniciales del formulario basados en el estado global
+    const getInitialValues = () => {
+        if (!isInitialized) {
+            return { color: "" };
+        }
+
+        return {
+            color: state.currentOrder.tela_id ? state.currentOrder.codeSelected : ""
+        };
+    };
+
     return (
         <>
-            <Nav/>
-            <CurrentOrder/>
             <Flex
                 align="center"
                 justify="center"
                 bg="black"
-                p={[1, 2, 4, 6]}
             >
                 <Box
                     w={["95%", "90%", "70%", "50%"]}
@@ -107,18 +123,16 @@ const ColorSelectionForm = () => {
                     flexDirection="column"
                 >
                     <Formik
-                        initialValues={{ color: "" }}
+                        initialValues={getInitialValues()}
                         enableReinitialize
                         onSubmit={(values, { setSubmitting }) => {
-                            console.log("Selected color code:", values.color);
                             state.currentOrder.tela_id = selectedColor.id;
-                            console.log("Current order:", state.currentOrder);
                             state.pickColor = false;
                             state.pickSize = true;
                             state.currentOrder.codeSelected = selectedColor.code;
                             state.currentOrder.colorSelected = selectedColor.color;
                             setSubmitting(false);
-                            navigate("/control-panel/size");
+                            navigate("/control-panel/current-order/details");
                         }}
                     >
                         {({ values, setFieldValue, isSubmitting }) => (
@@ -185,7 +199,7 @@ const ColorSelectionForm = () => {
                                     >
                                         {loading ? (
                                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>Cargando colores...</Text>
-                                        ) : colorsData.length === 0 ? (
+                                        ) : snap.colorsData.length === 0 ? (
                                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>No hay colores disponibles</Text>
                                         ) : (
                                             <Flex
@@ -194,7 +208,7 @@ const ColorSelectionForm = () => {
                                                 gap={[1, 2]}
                                                 px={[0, 1]}
                                             >
-                                                {colorsData.map((colorData, index) => (
+                                                {snap.colorsData.map((colorData, index) => (
                                                     <Box
                                                         key={index}
                                                         onClick={() => {

@@ -1,5 +1,3 @@
-import Nav from './Nav'
-import CurrentOrder  from "./CurrentOrder";
 import {useState, useEffect} from "react";
 import {Button, VStack, Box, Flex, Text} from "@chakra-ui/react";
 import {Formik, Form, Field} from "formik";
@@ -13,16 +11,37 @@ const ProductSelectionForm = () => {
     const snap = useSnapshot(state);
     const [prendas, setPrendas] = useState([]);
     const [selectedStocks, setSelectedStocks] = useState([]);
+    const [selectedPrenda, setSelectedPrenda] = useState({});
     const [selectedDescriptions, setSelectedSDescriptions] = useState([]);
     const [selectedProductName, setSelectedProductName] = useState("");
     const [selectedStockDescription, setSelectedStockDescription] = useState("");
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const fetchPrendas = async () => {
             try {
                 const response = await axiosInstance.get("/prendas");
-                setPrendas(response.data); // Assuming response.data is an array of { id, name, stocks }
-                console.log("prendas", response.data);
+                setPrendas(response.data);
+                
+                // Si hay datos en el estado global, inicializar los valores
+                if (state.currentOrder.product_id) {
+                    const product = response.data.find(p => p.id == state.currentOrder.product_id);
+                    if (product) {
+                        setSelectedStocks(product.stocks);
+                        setSelectedSDescriptions(product.descriptions);
+                        setSelectedProductName(product.name);
+                        setSelectedPrenda(product);
+                        
+                        // Encontrar el índice del stock seleccionado
+                        const stockIndex = product.stocks.findIndex(
+                            stock => stock === state.currentOrder.stock
+                        );
+                        if (stockIndex !== -1) {
+                            setSelectedStockDescription(product.descriptions[stockIndex]);
+                        }
+                    }
+                }
+                setIsInitialized(true);
             } catch (error) {
                 console.error("Error fetching prendas:", error);
             }
@@ -31,15 +50,28 @@ const ProductSelectionForm = () => {
         fetchPrendas();
     }, []);
 
+    // Valores iniciales del formulario basados en el estado global
+    const getInitialValues = () => {
+        if (!isInitialized) {
+            return { productType: "", stock: "" };
+        }
+
+        const stockIndex = selectedStocks.findIndex(
+            stock => stock === state.currentOrder.stock
+        );
+
+        return {
+            productType: state.currentOrder.product_id || "",
+            stock: stockIndex !== -1 ? stockIndex + '' : ""
+        };
+    };
+
     return (
         <>
-            <Nav/>
-            <CurrentOrder/>
             <Flex
                 align="center"
                 justify="center"
                 bg="black"
-                p={[2, 4, 6]}  // Adjust padding based on screen size
             >
                 <Box
                     w={["90%", "80%", "60%", "40%"]}  // Bigger width on small screens
@@ -49,25 +81,24 @@ const ProductSelectionForm = () => {
                     boxShadow="2xl"
                 >
                     <Formik
-                        initialValues={{productType: "", stock: ""}}
+                        initialValues={getInitialValues()}
+                        enableReinitialize
                         onSubmit={(values, {setSubmitting}) => {
                             if (!values.productType || !values.stock) {
                                 console.warn("Product and stock must be selected!");
                                 setSubmitting(false);
                                 return;
                             }
-                            console.log("Selection:", values);
-                            console.log("descs", selectedDescriptions);
                             state.currentOrder.product_id = values.productType;
-                            console.log("current_order", state.currentOrder);
                             state.pickColor = true;
+                            state.currentOrder.prenda = selectedPrenda;
                             state.currentOrder.stock = selectedStocks[values.stock];
                             state.currentOrder.productName = selectedProductName;
                             state.currentOrder.fabricName = selectedDescriptions[values.stock];
                             //state.file_3d = `${values.productType}.glb`;
                             state.showProductForm = false;
                             setSubmitting(false);
-                            navigate("/control-panel/color");
+                            navigate("/control-panel/current-order/color");
                         }}
                     >
                         {({values, setFieldValue, isSubmitting}) => (
@@ -92,6 +123,7 @@ const ProductSelectionForm = () => {
                                                 setSelectedStocks(product.stocks);
                                                 setSelectedSDescriptions(product.descriptions);
                                                 setSelectedProductName(product.name); // Store product name
+                                                setSelectedPrenda(product);
                                             } else {
                                                 setSelectedStocks([]);
                                                 setSelectedSDescriptions([]);

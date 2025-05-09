@@ -8,7 +8,7 @@ const ClientPage = () => {
     const snap = useSnapshot(state);
 
     return (
-        <Flex minH="100vh" align="center" justify="center" bg="black">
+        <Flex align="center" justify="center" bg="black">
             {snap.registered ? (
                 <ClientChecker />
             ) : (

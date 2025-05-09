@@ -5,12 +5,19 @@ import logo from "../assets/images/logo.png";
 import {MenuContent, MenuItem, MenuRoot, MenuTrigger} from "../components/ui/menu";
 import {LuSearch} from "react-icons/lu";
 import CustomButton from "./CustomButton";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Nav() {
     const snap = useSnapshot(state);
     const isDesktop = useBreakpointValue({base: false, lg: true});
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const colorSelected = '!bg-orange-500';
+
+    const isCurrentRoute = (path) => {
+        return location.pathname === path;
+    };
 
     if (!snap.cart.length > 0 && snap.justCheckedOut) return (
         <nav>
@@ -38,7 +45,7 @@ export default function Nav() {
                                 state.currentOrder = {};
                                 navigate("/control-panel")
                             }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel') ? colorSelected : ''}`}
                         />
 
                         <CustomButton
@@ -49,9 +56,9 @@ export default function Nav() {
                                 state.showProductForm = true;
                                 state.pickColor = false;
                                 state.showCart = false;
-                                navigate("/control-panel/product")
+                                navigate("/control-panel/current-order/product")
                             }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/product') ? colorSelected : ''}`}
                         />
 
                     </HStack>
@@ -85,7 +92,7 @@ export default function Nav() {
                                     state.showProductForm = true;
                                     state.pickColor = false;
                                     state.showCart = false;
-                                    navigate("/control-panel/product")
+                                    navigate("/control-panel/current-order/product")
                                 }}
                             >
                                 Agregar otro producto
@@ -120,9 +127,9 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showCart = false;
-                                    navigate('/control-panel/product');
+                                    navigate('/control-panel/current-order/product');
                                 }}
-                                customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                                customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/product') ? colorSelected : ''}`}
                             />) : null
                         }
 
@@ -135,9 +142,24 @@ export default function Nav() {
                                 state.showProductForm = false;
                                 state.pickColor = true;
                                 state.showCart = false;
-                                navigate('/control-panel/color');
+                                navigate('/control-panel/current-order/color');
                             }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/color') ? colorSelected : ''}`}
+                        />) : null
+                        }
+
+                        {!(snap.currentOrder.prenda === '') ?
+                        (<CustomButton
+                            type="filled"
+                            title="Detalles"
+                            handleClick={() => {
+                                state.pickSize = false;
+                                state.showProductForm = false;
+                                state.pickColor = true;
+                                state.showCart = false;
+                                navigate('/control-panel/current-order/details');
+                            }}
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/details') ? colorSelected : ''}`}
                         />) : null
                         }
 
@@ -150,9 +172,9 @@ export default function Nav() {
                                 state.showProductForm = false;
                                 state.pickColor = false;
                                 state.showCart = false;
-                                navigate('/control-panel/size');
+                                navigate('/control-panel/current-order/size');
                             }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/size') ? colorSelected : ''}`}
                         />): null
                         }
                         {!(snap.cart.length === 0) ?
@@ -164,9 +186,9 @@ export default function Nav() {
                                 state.pickSize = false;
                                 state.pickColor = false;
                                 state.showProductForm = false;
-                                navigate('/control-panel/cart');
+                                navigate('/control-panel/current-order/cart');
                             }}
-                            customeStyles="w-fit px-4 py-2.5 font-bold text-sm"
+                            customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel/current-order/cart') ? colorSelected : ''}`}
                         />): null
                         }
                     </HStack>
@@ -185,8 +207,10 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showCart = false;
-                                    navigate('/control-panel/product');
-
+                                    navigate('/control-panel/current-order/product');
+                                }}
+                                style={{
+                                    backgroundColor: isCurrentRoute('/control-panel/current-order/product') ? colorSelected : 'transparent'
                                 }}
                             >
                                 Prendas
@@ -198,7 +222,10 @@ export default function Nav() {
                                     state.showProductForm = false;
                                     state.pickSize = false;
                                     state.showCart = false;
-                                    navigate('/control-panel/color');
+                                    navigate('/control-panel/current-order/color');
+                                }}
+                                style={{
+                                    backgroundColor: isCurrentRoute('/control-panel/current-order/color') ? colorSelected : 'transparent'
                                 }}
                             >
                                 Colores
@@ -210,7 +237,10 @@ export default function Nav() {
                                     state.showProductForm = false;
                                     state.pickColor = false;
                                     state.showCart = false;
-                                    navigate('/control-panel/size');
+                                    navigate('/control-panel/current-order/size');
+                                }}
+                                style={{
+                                    backgroundColor: isCurrentRoute('/control-panel/current-order/size') ? colorSelected : 'transparent'
                                 }}
                             >
                                 Tallas
@@ -222,7 +252,10 @@ export default function Nav() {
                                     state.pickSize = false;
                                     state.pickColor = false;
                                     state.showProductForm = false;
-                                    navigate('/control-panel/cart');
+                                    navigate('/control-panel/current-order/cart');
+                                }}
+                                style={{
+                                    backgroundColor: isCurrentRoute('/control-panel/current-order/cart') ? colorSelected : 'transparent'
                                 }}
                             >
                                 Carrito

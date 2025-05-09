@@ -1,9 +1,9 @@
-import { VStack, Text, Flex, Box, useBreakpointValue } from "@chakra-ui/react";
-import { MdAddCircle } from "react-icons/md";
+import { Box, Flex, Text, useBreakpointValue, VStack } from "@chakra-ui/react";
 import { FaClipboardList } from "react-icons/fa";
+import { MdAddCircle } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 import { useSnapshot } from "valtio";
 import { state } from "../store";
-import { Outlet, useNavigate } from "react-router-dom";
 
 function ControlPanel() {
     const snap = useSnapshot(state);
@@ -21,7 +21,7 @@ function ControlPanel() {
         state.cc = "";
         state.registered = true;
         state.cart = []
-        navigate("/control-panel/client");
+        navigate("/control-panel/current-order/client");
     };
 
     const handleViewOrders = () => {
@@ -30,7 +30,7 @@ function ControlPanel() {
 
     return (
         <Flex
-            minH="100vh"
+            minH="90vh"
             align="center"
             justify="center"
             bg="black"

@@ -15,10 +15,10 @@ const SizeSelectionForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [selectedTalla, setSelectedTalla] = useState(null);
-    const [sex, setSex] = useState("");
-    const [quantity, setQuantity] = useState(""); // Store quantity input
+    const [sex, setSex] = useState(state.currentOrder.sex || "");
+    const [quantity, setQuantity] = useState(state.currentOrder.quantity || "");
     const [tallasCache, setTallasCache] = useState({});
-
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // More aggressive responsive values for very small screens
     const fontSize = useBreakpointValue({ base: "xs", sm: "sm", md: "md" });
@@ -31,6 +31,7 @@ const SizeSelectionForm = () => {
 
     // For iPhone SE and other very small screens
     const isSizeButtonsCompact = useBreakpointValue({ base: true, sm: false });
+
     const fetchTallas = async () => {
         if (!snap.currentOrder.product_id || !["Hombre", "Mujer"].includes(sex)) {
             setTallasData([]);
@@ -41,6 +42,11 @@ const SizeSelectionForm = () => {
 
         if (tallasCache[cacheKey]) {
             setTallasData(tallasCache[cacheKey]);
+            // Si hay una talla seleccionada en el estado, seleccionarla
+            if (state.currentOrder.size) {
+                setSelectedTalla(state.currentOrder.size);
+            }
+            setIsInitialized(true);
             return;
         }
 
@@ -55,6 +61,11 @@ const SizeSelectionForm = () => {
 
             setTallasData(tallas);
 
+            // Si hay una talla seleccionada en el estado, seleccionarla
+            if (state.currentOrder.size) {
+                setSelectedTalla(state.currentOrder.size);
+            }
+
             setTallasCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: tallas,
@@ -64,23 +75,36 @@ const SizeSelectionForm = () => {
             setError("Failed to fetch tallas.");
         } finally {
             setLoading(false);
+            setIsInitialized(true);
         }
     };
 
     useEffect(() => {
         fetchTallas();
-    }, [sex, snap.currentOrder.productType]);
+    }, [sex, snap.currentOrder.product_id]);
+
+    // Valores iniciales del formulario basados en el estado global
+    const getInitialValues = () => {
+        if (!isInitialized) {
+            return { sex: "", talla: "", quantity: "" };
+        }
+
+        console.log("state.currentOrder", state.currentOrder);
+        return {
+            sex: state.currentOrder.sex || "",
+            talla: state.currentOrder.size || "",
+            quantity: state.currentOrder.quantity || ""
+        };
+    };
 
     return (
         <>
-            <Nav /> {/* Include the navigation component here */}
-            <CurrentOrder/>
             <Flex
                 align="center"
                 justify="center"
                 bg="black"
                 p={[2, 3, 4]}
-                minH={{ base: "auto", md: "100vh" }}
+                minH={{ base: "auto" }}
             >
                 <Box
                     w={["95%", "90%", "70%", "50%"]}
@@ -93,7 +117,8 @@ const SizeSelectionForm = () => {
                     maxH={containerHeight}
                 >
                     <Formik
-                        initialValues={{ sex: "", talla: "", quantity: "" }}
+                        initialValues={getInitialValues()}
+                        enableReinitialize
                         onSubmit={(values, { setSubmitting }) => {
                             console.log("Selected talla:", values.talla, "Quantity:", values.quantity);
                             state.currentOrder.size = values.talla;
@@ -102,7 +127,7 @@ const SizeSelectionForm = () => {
                             addToCart()
                             console.log("cart", state.cart);
                             setSubmitting(false);
-                            navigate("/control-panel/cart");
+                            navigate("/control-panel/current-order/cart");
                         }}
                     >
                         {({ values, setFieldValue, isSubmitting }) => (

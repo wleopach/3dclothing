@@ -8,8 +8,11 @@ const CurrentOrder = () => {
     return (
         <Card.Root width="320px">
             <Card.Body gap="2">
+                <Text fontWeight="semibold" textStyle="xl" textAlign="center" color="#EFBD48">
+                    Datos de la orden Actual
+                </Text>
                 <Text fontWeight="semibold" textStyle="sm">
-                    Cliente : {snap.clientData?.name || "Sin cliente"}
+                    <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Cliente : </Text> {snap.clientData?.name || "Sin cliente"}
                 </Text>
                 <CurrentProduct
                     productName={snap.currentOrder.productName}

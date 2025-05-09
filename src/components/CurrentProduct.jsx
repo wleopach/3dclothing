@@ -1,4 +1,4 @@
-import {Box, HStack, Text} from "@chakra-ui/react";
+import {Box, HStack, Text, VStack} from "@chakra-ui/react";
 
 function CurrentProduct({productName, fabricName, colorSelected, codeSelected, sex, size, quantity}) {
     const getRgbColor = (colorStr) => {
@@ -24,25 +24,24 @@ function CurrentProduct({productName, fabricName, colorSelected, codeSelected, s
 
     return (
         <Box mb={[1, 2, 3]}>
-            <HStack spacing={[1, 2, 4]} wrap="wrap">
+            <VStack spacing={[1, 2, 4]} align="start">
                 {productName && (
                     <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">
-
-                        Prenda: {productName}.
+                        <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Prenda: </Text> {productName}.
                     </Text>
                 )}
                 {fabricName && (
                     <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">
-
-                        Stock: {fabricName}
+                        <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Stock: </Text> {fabricName}
                     </Text>
                 )}
-            </HStack>
+            </VStack>
 
             {codeSelected && (
-                <HStack spacing={2}>
+                <HStack spacing={2} mt={[1]}>
                     <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">
-                        Color seleccionado: {codeSelected}</Text>
+                        <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Color seleccionado: </Text> {codeSelected}
+                    </Text>
                     <Box
                         width="20px"
                         height="20px"

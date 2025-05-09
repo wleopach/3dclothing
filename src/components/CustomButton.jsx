@@ -30,7 +30,10 @@ const CustomButton = ({ type, title, customStyles, handleClick, disabled }) => {
         <button
             type={type === "submit" ? "submit" : "button"}
             className={`px-2 py-1.5 flex-1 rounded-md ${customStyles}`}
-            style={generateStyle(type)}
+            style={{
+                ...generateStyle(type),
+                backgroundColor: customStyles?.includes('!bg-yellow-500') ? '#ECC94B' : generateStyle(type).backgroundColor
+            }}
             onClick={handleClick}
             disabled={disabled} // Disable button while submitting
         >

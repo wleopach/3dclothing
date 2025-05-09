@@ -26,7 +26,7 @@ const ClientChecker = () => {
                 state.clientData = response.data.cliente;
                 state.showForm = false;
                 state.showProductForm = true;
-                navigate("/control-panel/product");
+                navigate("/control-panel/current-order/product");
 
             } else {
                 setError("Cliente no encontrado. Complete el formulario.");
