@@ -1,7 +1,7 @@
 import {Avatar, Box, Container, Flex, IconButton, Image, Menu, Portal, Spacer} from "@chakra-ui/react";
 import {FaUser} from "react-icons/fa";
 import {useSnapshot} from "valtio";
-import {state} from "../store";
+import {state, clearSavedState} from "../store";
 import {Outlet, useNavigate} from "react-router-dom";
 import logo from "../assets/images/logo.png";
 
@@ -11,6 +11,10 @@ function Home() {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+
+        // Limpiar el estado guardado en localStorage
+        clearSavedState();
+
         navigate('/');
     };
 

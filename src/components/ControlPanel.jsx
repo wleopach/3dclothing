@@ -16,11 +16,11 @@ function ControlPanel() {
     const iconSize = useBreakpointValue({ base: 30, md: 40 });
 
     const handleCreateOrder = () => {
-        state.currentOrder= {};
-        state.ClientData = {};
-        state.cc = "";
-        state.registered = true;
-        state.cart = []
+        // state.currentOrder= {};
+        // state.ClientData = {};
+        // state.cc = "";
+        // state.registered = true;
+        // state.cart = []
         navigate("/control-panel/current-order/client");
     };
 

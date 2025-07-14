@@ -3,8 +3,9 @@ import { useSnapshot } from 'valtio';
 
 import {state} from '../store';
 import { getContrastingColor } from '../config/helpers';
+import { Badge } from "@chakra-ui/react"
 
-const CustomButton = ({ type, title, customStyles, handleClick, disabled }) => {
+const CustomButton = ({ type, title, customStyles, handleClick, disabled, badge }) => {
     const snap = useSnapshot(state);
 
     const generateStyle = (type) => {
@@ -37,7 +38,12 @@ const CustomButton = ({ type, title, customStyles, handleClick, disabled }) => {
             onClick={handleClick}
             disabled={disabled} // Disable button while submitting
         >
-            {title}
+            <div className='flex items-center'>
+                {title}
+                {badge != null && badge > 0 && (
+                    <Badge colorScheme='red' ml={2}>{badge}</Badge>
+                )}
+            </div>
         </button>
     );
 };

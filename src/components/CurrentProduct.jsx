@@ -1,6 +1,6 @@
 import {Box, HStack, Text, VStack} from "@chakra-ui/react";
 
-function CurrentProduct({productName, fabricName, colorSelected, codeSelected, sex, size, quantity}) {
+function CurrentProduct({productName, cortadorName, fabricName, colorSelected, codeSelected, sex, size, quantity}) {
     const getRgbColor = (colorStr) => {
         if (!colorStr || typeof colorStr !== "string") {
             return "gray"; // Default color if invalid
@@ -28,6 +28,11 @@ function CurrentProduct({productName, fabricName, colorSelected, codeSelected, s
                 {productName && (
                     <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">
                         <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Prenda: </Text> {productName}.
+                    </Text>
+                )}
+                {cortadorName && (
+                    <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">
+                        <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Cortador: </Text> {cortadorName}
                     </Text>
                 )}
                 {fabricName && (

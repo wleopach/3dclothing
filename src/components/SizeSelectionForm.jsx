@@ -89,7 +89,6 @@ const SizeSelectionForm = () => {
             return { sex: "", talla: "", quantity: "" };
         }
 
-        console.log("state.currentOrder", state.currentOrder);
         return {
             sex: state.currentOrder.sex || "",
             talla: state.currentOrder.size || "",
@@ -120,12 +119,10 @@ const SizeSelectionForm = () => {
                         initialValues={getInitialValues()}
                         enableReinitialize
                         onSubmit={(values, { setSubmitting }) => {
-                            console.log("Selected talla:", values.talla, "Quantity:", values.quantity);
                             state.currentOrder.size = values.talla;
                             state.currentOrder.quantity = values.quantity;
                             state.currentOrder.sex = values.sex;
-                            addToCart()
-                            console.log("cart", state.cart);
+                            addToCart();
                             setSubmitting(false);
                             navigate("/control-panel/current-order/cart");
                         }}
@@ -194,14 +191,24 @@ const SizeSelectionForm = () => {
                                                             setSelectedTalla(talla);
                                                             setFieldValue("talla", talla);
                                                         }}
-                                                        colorScheme={selectedTalla === talla ? "blue" : "gray"}
-                                                        variant={selectedTalla === talla ? "solid" : "outline"}
                                                         size={buttonSize}
                                                         m={0.5}
                                                         minW={isSizeButtonsCompact ? "35px" : "40px"}
                                                         height={isSizeButtonsCompact ? "35px" : "40px"}
                                                         px={isSizeButtonsCompact ? 1 : 2}
-                                                        background={snap.color}
+                                                        bg={selectedTalla === talla ? snap.colorGreen : "transparent"}
+                                                        color={selectedTalla === talla ? "white" : snap.color}
+                                                        border="2px solid"
+                                                        borderColor={selectedTalla === talla ? snap.colorGreen : snap.color}
+                                                        _hover={{
+                                                            bg: selectedTalla === talla ? snap.colorGreen : `${snap.color}20`,
+                                                            borderColor: selectedTalla === talla ? snap.colorGreen : snap.color
+                                                        }}
+                                                        _active={{
+                                                            bg: selectedTalla === talla ? snap.colorGreen : `${snap.color}30`,
+                                                            borderColor: selectedTalla === talla ? snap.colorGreen : snap.color
+                                                        }}
+                                                        transition="all 0.2s"
                                                     >
                                                         {talla}
                                                     </Button>

@@ -22,7 +22,7 @@ const ProductSelectionForm = () => {
             try {
                 const response = await axiosInstance.get("/prendas");
                 setPrendas(response.data);
-                
+
                 // Si hay datos en el estado global, inicializar los valores
                 if (state.currentOrder.product_id) {
                     const product = response.data.find(p => p.id == state.currentOrder.product_id);
@@ -31,7 +31,7 @@ const ProductSelectionForm = () => {
                         setSelectedSDescriptions(product.descriptions);
                         setSelectedProductName(product.name);
                         setSelectedPrenda(product);
-                        
+
                         // Encontrar el índice del stock seleccionado
                         const stockIndex = product.stocks.findIndex(
                             stock => stock === state.currentOrder.stock
@@ -167,20 +167,18 @@ const ProductSelectionForm = () => {
                                         ))}
                                     </Field>
 
-
                                     {/* Submit Button */}
-
-                                <Button
-                                    type="submit"
-                                    bg={snap.color}
-                                    color="black"
-                                    isLoading={isSubmitting}
-                                    width="full"
-                                    _hover={{ bg: "yellow.500" }}
-                                >
-                                    Seleccionar Tela
-                                </Button>
-
+                                    <Button
+                                        type="submit"
+                                        bg={snap.color}
+                                        color="black"
+                                        isLoading={isSubmitting}
+                                        width="full"
+                                        _hover={{ bg: "yellow.500" }}
+                                        mt={4}
+                                    >
+                                        Continuar
+                                    </Button>
                                 </VStack>
                             </Form>
                         )}

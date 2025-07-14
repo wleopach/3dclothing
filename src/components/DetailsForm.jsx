@@ -1,11 +1,13 @@
-import { Box, Button, Flex, Text, useBreakpointValue, VStack, ButtonGroup, SimpleGrid, Popover, Portal, Input } from "@chakra-ui/react";
+import { Box, Button, Flex, Text, useBreakpointValue, VStack, ButtonGroup, SimpleGrid, Popover, Portal, Input, Dialog } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip"
+import { DialogRoot, DialogContent, DialogHeader, DialogBody, DialogBackdrop } from "@/components/ui/dialog"
 import { Form, Formik, Field } from "formik";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useSnapshot } from "valtio";
 import { state } from "../store";
 import axiosInstance from "../axiosConfig";
+import ModelSelectorDialog from "./chothing-model/ModelSelectorDialog.jsx";
 
 
 const DetailsForm = () => {
@@ -17,13 +19,27 @@ const DetailsForm = () => {
     const [detailsData, setDetailsData] = useState([]);
     const [currentStep, setCurrentStep] = useState(0);
     const [formValues, setFormValues] = useState({});
+    const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
+    const [currentModelField, setCurrentModelField] = useState(null);
 
-    // Cargar los valores guardados cuando el componente se monta
+    // Cargar los valores guardados cuando el componente se monta o cuando cambia el estado
     useEffect(() => {
         if (state.currentOrder.details) {
-            setFormValues(state.currentOrder.details);
+            try {
+                // Si details es un string JSON, parsearlo
+                const parsedDetails = typeof state.currentOrder.details === 'string'
+                    ? JSON.parse(state.currentOrder.details)
+                    : state.currentOrder.details;
+                setFormValues(parsedDetails);
+            } catch (error) {
+                setFormValues(state.currentOrder.details);
+            }
+        } else {
+            // Si no hay datos guardados, inicializar con objeto vacío
+            setFormValues({});
         }
-    }, []);
+    }, [state.currentOrder.details, snap.currentOrder.details]);
+
 
     // Función para capitalizar la primera letra
     const capitalizeFirstLetter = (string) => {
@@ -76,17 +92,32 @@ const DetailsForm = () => {
 
         return currentStepData.campos.every(campo => {
             // Skip validation if field is optional
-            // if (campo.obligatorio === false) return true;
+            if (campo.obligatorio === false) return true;
 
             const fieldName = `${currentStepData.nombre}_${campo.nombre}`;
-            
+
             // Handle different field types
             if (campo.tipo === "escoger") {
+                // Check if field has model selector requirement
+                if (campo["selector-de-modelo"] === true) {
+                    // Field is valid if either a normal option is selected OR a model is selected
+                    const hasNormalSelection = formValues[fieldName] && formValues[fieldName].trim() !== '';
+                    const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+                    return hasNormalSelection || hasModelSelection;
+                }
                 return formValues[fieldName] && formValues[fieldName].trim() !== '';
             }
-            
+
             // console.log(formValues);
             if (campo.tipo === "escoger-multi-campo") {
+                // Check if field has model selector requirement
+                if (campo["selector-de-modelo"] === true) {
+                    // Field is valid if either a normal option is selected OR a model is selected
+                    const hasNormalSelection = formValues[`${fieldName}_main`] && formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                    const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+                    return hasNormalSelection || hasModelSelection;
+                }
+
                 // Check if main option is selected
                 const mainSelected = formValues[`${fieldName}_main`];
                 if (!mainSelected) return false;
@@ -164,17 +195,55 @@ const DetailsForm = () => {
         setFormValues(newValues);
     };
 
+    const handleOpenModelSelector = (stepNombre, campoNombre) => {
+        setCurrentModelField({ stepNombre, campoNombre });
+        setIsModelSelectorOpen(true);
+    };
+
+    const handleCloseModelSelector = () => {
+        setIsModelSelectorOpen(false);
+        setCurrentModelField(null);
+    };
+
+    const handleModelSelection = (selectedModelData) => {
+        if (currentModelField) {
+            const { stepNombre, campoNombre } = currentModelField;
+            const newValues = { ...formValues };
+            newValues[`${stepNombre}_${campoNombre}_modelo`] = selectedModelData;
+            setFormValues(newValues);
+        }
+        handleCloseModelSelector();
+    };
+
     const NumberInput = ({ stepNombre, campoNombre, opcion }) => {
         const [localValue, setLocalValue] = useState(formValues[`${stepNombre}_${campoNombre}_${opcion}`] || '');
+        const timeoutRef = useRef(null);
 
         const handleChange = (e) => {
             const value = e.target.value;
             setLocalValue(value);
+
+            // Limpiar el timeout anterior si existe
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            // Actualizar formValues después de un breve delay
+            timeoutRef.current = setTimeout(() => {
+                if (value === '' || !isNaN(value)) {
+                    handleNumberInputChange(stepNombre, campoNombre, opcion, value);
+                }
+            }, 500);
         };
 
-        const handleBlur = () => {
-            handleNumberInputChange(stepNombre, campoNombre, opcion, localValue);
-        };
+        // Limpiar el timeout cuando el componente se desmonte
+        useEffect(() => {
+            return () => {
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+            };
+        }, []);
 
         // Actualizar el valor local cuando cambia el valor en formValues
         useEffect(() => {
@@ -194,7 +263,6 @@ const DetailsForm = () => {
                 type="number"
                 value={localValue}
                 onChange={handleChange}
-                onBlur={handleBlur}
                 _hover={{
                     borderColor: snap.color
                 }}
@@ -206,15 +274,11 @@ const DetailsForm = () => {
         );
     };
 
-    const renderClearButton = (stepNombre, campoNombre, isMultiCampo = false) => {
-        const fieldName = isMultiCampo ? `${stepNombre}_${campoNombre}_main` : `${stepNombre}_${campoNombre}`;
-        const handleClick = isMultiCampo 
-            ? () => handleClearMultiCampoSelection(stepNombre, campoNombre)
-            : () => handleClearSelection(stepNombre, campoNombre);
+    const renderClearButton = (handleClick) => {
 
         return (
             <Tooltip
-                content="Eliminar la selección actual"
+                content="Eliminar el dato seleccionado"
                 placement="top"
                 hasArrow
                 bg="red.500"
@@ -236,9 +300,55 @@ const DetailsForm = () => {
                     ml={2}
                     onClick={handleClick}
                 >
-                    Limpiar
+                    Borrar
                 </Button>
             </Tooltip>
+        );
+    };
+
+    const ModelSelectorButton = ({ stepNombre, campoNombre, isSelected }) => {
+        const selectedModel = formValues[`${stepNombre}_${campoNombre}_modelo`];
+
+        return (
+            <VStack spacing={2} width="100%">
+                <Button
+                    size="md"
+                    bg={isSelected ? snap.color : "gray.600"}
+                    color={isSelected ? "black" : "white"}
+                    _hover={{
+                        bg: isSelected ? "yellow.500" : "gray.500"
+                    }}
+                    onClick={() => handleOpenModelSelector(stepNombre, campoNombre)}
+                    width="100%"
+                    height="60px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={2}
+                >
+                    {selectedModel ? (
+                        <>
+                            <Text fontSize="sm">Modelo seleccionado</Text>
+                            <Box
+                                width="20px"
+                                height="20px"
+                                borderRadius="sm"
+                                backgroundColor={selectedModel.colors ? getRgbColor(Object.values(selectedModel.colors)[0]) : snap.color}
+                                border="1px solid white"
+                            />
+                        </>
+                    ) : (
+                        <Text fontSize="sm">Seleccionar modelo</Text>
+                    )}
+                </Button>
+                {selectedModel && (
+                    renderClearButton(() => {
+                        const newValues = { ...formValues };
+                        delete newValues[`${stepNombre}_${campoNombre}_modelo`];
+                        setFormValues(newValues);
+                    })
+                )}
+            </VStack>
         );
     };
 
@@ -254,6 +364,13 @@ const DetailsForm = () => {
                 setSelectedColorData(colorValue);
             }
         }, [stepNombre, campoNombre, subObjNombre]);
+
+        const handleClearColor = () => {
+            const newValues = { ...formValues };
+            delete newValues[`${stepNombre}_${campoNombre}_${subObjNombre}`];
+            setFormValues(newValues);
+            setSelectedColorData(null);
+        };
 
         useEffect(() => {
             const fetchColors = async () => {
@@ -302,40 +419,46 @@ const DetailsForm = () => {
                 ) : (
                     <Popover.Root>
                         <Popover.Trigger asChild>
-                            <Box
-                                cursor="pointer"
-                                borderRadius="md"
-                                p={2}
-                                border="2px solid"
-                                borderColor={selectedColorData ? snap.color : "gray.600"}
-                                bg={selectedColorData ? `${snap.color}20` : "transparent"}
-                                _hover={{
-                                    borderColor: snap.color,
-                                    bg: `${snap.color}10`
-                                }}
-                                transition="all 0.2s"
-                                display="flex"
-                                alignItems="center"
-                                gap={2}
-                            >
-                                {selectedColorData ? (
-                                    <>
-                                        <Box
-                                            width="40px"
-                                            height="40px"
-                                            borderRadius="md"
-                                            backgroundColor={getRgbColor(selectedColorData.color)}
-                                        />
-                                        <Text color="white" fontSize="sm">
-                                            {selectedColorData.code}
+                            <VStack spacing={2} width="100%">
+                                <Box
+                                    cursor="pointer"
+                                    borderRadius="md"
+                                    p={2}
+                                    border="2px solid"
+                                    borderColor={selectedColorData ? snap.color : "gray.600"}
+                                    bg={selectedColorData ? `${snap.color}20` : "transparent"}
+                                    _hover={{
+                                        borderColor: snap.color,
+                                        bg: `${snap.color}10`
+                                    }}
+                                    transition="all 0.2s"
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={2}
+                                    width="100%"
+                                >
+                                    {selectedColorData ? (
+                                        <>
+                                            <Box
+                                                width="40px"
+                                                height="40px"
+                                                borderRadius="md"
+                                                backgroundColor={getRgbColor(selectedColorData.color)}
+                                            />
+                                            <Text color="white" fontSize="sm">
+                                                {selectedColorData.code}
+                                            </Text>
+                                        </>
+                                    ) : (
+                                        <Text color="white" fontSize="sm" textAlign="center" margin="auto">
+                                            Seleccionar color
                                         </Text>
-                                    </>
-                                ) : (
-                                    <Text color="white" fontSize="sm">
-                                        Seleccionar color
-                                    </Text>
+                                    )}
+                                </Box>
+                                {selectedColorData && (
+                                    renderClearButton(() => handleClearColor())
                                 )}
-                            </Box>
+                            </VStack>
                         </Popover.Trigger>
                         <Portal>
                             <Popover.Positioner>
@@ -481,175 +604,211 @@ const DetailsForm = () => {
                                     <Box key={campoIndex}>
                                         <Text color={snap.color} mb={2}>
                                             {capitalizeFirstLetter(campo.nombre)}
-                                            {campo.obligatorio === false && formValues[`${step.nombre}_${campo.nombre}`] && 
-                                                renderClearButton(step.nombre, campo.nombre)
+                                            {campo.obligatorio === false && formValues[`${step.nombre}_${campo.nombre}`] &&
+                                                renderClearButton(() => handleClearSelection(step.nombre, campo.nombre))
                                             }
-                                            {campo.obligatorio === false && formValues[`${step.nombre}_${campo.nombre}_main`] && 
-                                                renderClearButton(step.nombre, campo.nombre, true)
+                                            {campo.obligatorio === false && formValues[`${step.nombre}_${campo.nombre}_main`] &&
+                                                renderClearButton(() => handleClearMultiCampoSelection(step.nombre, campo.nombre))
                                             }
                                         </Text>
 
                                         {campo.tipo === "escoger" && campo.opciones && campo.opciones.length > 0 && (
                                             <Box width="100%" display="flex" justifyContent="center">
-                                                <SimpleGrid
-                                                    columns={campo.opciones.length < 4 ? campo.opciones.length : 4}
-                                                    spacing={4}
-                                                    display="inline-grid"
-                                                >
-                                                    {campo.opciones.map((opcion, opcionIndex) => {
-                                                        const isSelected = formValues[`${step.nombre}_${campo.nombre}`] === opcion;
-                                                        return (
-                                                            <Box
-                                                                key={opcionIndex}
-                                                                p={4}
-                                                                borderRadius="md"
-                                                                border="2px solid"
-                                                                borderColor={isSelected ? snap.color : "gray.600"}
-                                                                bg={isSelected ? `${snap.color}20` : "transparent"}
-                                                                cursor="pointer"
-                                                                onClick={() => handleOptionSelect(step.nombre, campo.nombre, opcion)}
-                                                                _hover={{
-                                                                    borderColor: snap.color,
-                                                                    bg: `${snap.color}10`
-                                                                }}
-                                                                transition="all 0.2s"
-                                                                margin="5px"
-                                                                width="160px"
-                                                                height="100px"
-                                                                display="flex"
-                                                                alignItems="center"
-                                                                justifyContent="center"
-                                                            >
-                                                                <Text
-                                                                    color={isSelected ? snap.color : "gray.400"}
-                                                                    textAlign="center"
-                                                                    fontWeight={isSelected ? "bold" : "normal"}
-                                                                    width="100%"
-                                                                >
-                                                                    {capitalizeFirstLetter(opcion)}
-                                                                </Text>
-                                                            </Box>
-                                                        );
-                                                    })}
-                                                </SimpleGrid>
-                                            </Box>
-                                        )}
-
-                                        {campo.tipo === "escoger-multi-campo" && campo.opciones && campo.opciones.length > 0 && (
-                                            <Box width="100%" display="flex" justifyContent="center">
-                                                <SimpleGrid
-                                                    columns={campo.opciones.length < 4 ? campo.opciones.length : 4}
-                                                    spacing={4}
-                                                    display="inline-grid"
-                                                >
-                                                    {campo.opciones.map((opcionObj, opcionObjIndex) => {
-                                                        const mainSelected = formValues[`${step.nombre}_${campo.nombre}_main`] === opcionObj.nombre;
-                                                        return (
-                                                            <Box key={opcionObjIndex} width="100%">
+                                                <VStack spacing={4} width="100%">
+                                                    {/* Opciones originales */}
+                                                    <SimpleGrid
+                                                        columns={{ base: 1, sm: 2, md: campo.opciones.length < 3 ? campo.opciones.length : 3 }}
+                                                        spacing={{ base: 2, sm: 3, md: 4 }}
+                                                        display="inline-grid"
+                                                        width={{ base: "100%", sm: "auto" }}
+                                                    >
+                                                        {campo.opciones.map((opcion, opcionIndex) => {
+                                                            const isSelected = formValues[`${step.nombre}_${campo.nombre}`] === opcion;
+                                                            return (
                                                                 <Box
-                                                                    p={4}
+                                                                    key={opcionIndex}
+                                                                    p={{ base: 2, sm: 3, md: 4 }}
                                                                     borderRadius="md"
                                                                     border="2px solid"
-                                                                    borderColor={mainSelected ? snap.color : "gray.600"}
-                                                                    bg={mainSelected ? `${snap.color}20` : "transparent"}
+                                                                    borderColor={isSelected ? snap.color : "gray.600"}
+                                                                    bg={isSelected ? `${snap.color}20` : "transparent"}
                                                                     cursor="pointer"
-                                                                    onClick={() => {
-                                                                        setFormValues({
-                                                                            ...formValues,
-                                                                            [`${step.nombre}_${campo.nombre}_main`]: opcionObj.nombre,
-                                                                            [`${step.nombre}_${campo.nombre}_sub`]: ""
-                                                                        });
-                                                                    }}
+                                                                    onClick={() => handleOptionSelect(step.nombre, campo.nombre, opcion)}
                                                                     _hover={{
                                                                         borderColor: snap.color,
                                                                         bg: `${snap.color}10`
                                                                     }}
                                                                     transition="all 0.2s"
-                                                                    margin="5px"
-                                                                    width="160px"
-                                                                    height="100px"
+                                                                    margin={{ base: "2px", sm: "3px", md: "5px" }}
+                                                                    width={{ base: "100%", sm: "140px", md: "160px" }}
+                                                                    height={{ base: "80px", sm: "90px", md: "100px" }}
                                                                     display="flex"
                                                                     alignItems="center"
                                                                     justifyContent="center"
                                                                 >
                                                                     <Text
-                                                                        color={mainSelected ? snap.color : "gray.400"}
+                                                                        color={isSelected ? snap.color : "gray.400"}
                                                                         textAlign="center"
-                                                                        fontWeight={mainSelected ? "bold" : "normal"}
+                                                                        fontWeight={isSelected ? "bold" : "normal"}
                                                                         width="100%"
+                                                                        fontSize={{ base: "sm", sm: "md" }}
                                                                     >
-                                                                        {capitalizeFirstLetter(opcionObj.nombre)}
+                                                                        {capitalizeFirstLetter(opcion)}
                                                                     </Text>
                                                                 </Box>
-                                                                {mainSelected && opcionObj.opciones && (
-                                                                    <Box mt={2}>
-                                                                        {opcionObj.tipo === "escoger" && Array.isArray(opcionObj.opciones) && typeof opcionObj.opciones[0] === "string" && (
-                                                                            <SimpleGrid columns={opcionObj.opciones.length < 4 ? opcionObj.opciones.length : 4} spacing={2}>
-                                                                                {opcionObj.opciones.map((subOpcion, subOpcionIndex) => {
-                                                                                    const subSelected = formValues[`${step.nombre}_${campo.nombre}_sub`] === subOpcion;
-                                                                                    return (
-                                                                                        <Box
-                                                                                            key={subOpcionIndex}
-                                                                                            p={2}
-                                                                                            borderRadius="md"
-                                                                                            border="2px solid"
-                                                                                            borderColor={subSelected ? snap.color : "gray.600"}
-                                                                                            bg={subSelected ? `${snap.color}20` : "transparent"}
-                                                                                            cursor="pointer"
-                                                                                            onClick={() => {
-                                                                                                setFormValues({
-                                                                                                    ...formValues,
-                                                                                                    [`${step.nombre}_${campo.nombre}_sub`]: subOpcion
-                                                                                                });
-                                                                                            }}
-                                                                                            _hover={{
-                                                                                                borderColor: snap.color,
-                                                                                                bg: `${snap.color}10`
-                                                                                            }}
-                                                                                            transition="all 0.2s"
-                                                                                            margin="2px"
-                                                                                            width="120px"
-                                                                                            display="flex"
-                                                                                            alignItems="center"
-                                                                                            justifyContent="center"
-                                                                                        >
-                                                                                            <Text
-                                                                                                color={subSelected ? snap.color : "gray.400"}
-                                                                                                textAlign="center"
-                                                                                                fontWeight={subSelected ? "bold" : "normal"}
-                                                                                                width="100%"
-                                                                                            >
-                                                                                                {capitalizeFirstLetter(subOpcion)}
-                                                                                            </Text>
-                                                                                        </Box>
-                                                                                    );
-                                                                                })}
-                                                                            </SimpleGrid>
-                                                                        )}
-                                                                        {opcionObj.tipo === "escoger-tipo" && Array.isArray(opcionObj.opciones) && typeof opcionObj.opciones[0] === "object" && (
-                                                                            <VStack spacing={2} align="center">
-                                                                                {opcionObj.opciones.map((subObj, subObjIndex) => (
-                                                                                    <Box key={subObjIndex} p={2} borderRadius="md" border="2px dashed" borderColor="gray.500" width="100%">
-                                                                                        <Text color="gray.300" fontWeight="bold" textAlign="center">
-                                                                                            {capitalizeFirstLetter(subObj.nombre)}
-                                                                                        </Text>
-                                                                                        {subObj.tipo === "color" && (
-                                                                                            <ColorSelector
-                                                                                                stepNombre={step.nombre}
-                                                                                                campoNombre={campo.nombre}
-                                                                                                subObjNombre={subObj.nombre}
-                                                                                            />
-                                                                                        )}
-                                                                                    </Box>
-                                                                                ))}
-                                                                            </VStack>
-                                                                        )}
+                                                            );
+                                                        })}
+                                                    </SimpleGrid>
+
+                                                    {/* Botón de selector de modelo (si está habilitado) */}
+                                                    {campo["selector-de-modelo"] === true && (
+                                                        <Box width="100%" display="flex" justifyContent="center">
+                                                            <ModelSelectorButton
+                                                                stepNombre={step.nombre}
+                                                                campoNombre={campo.nombre}
+                                                                isSelected={formValues[`${step.nombre}_${campo.nombre}_modelo`] !== undefined}
+                                                            />
+                                                        </Box>
+                                                    )}
+                                                </VStack>
+                                            </Box>
+                                        )}
+
+                                        {campo.tipo === "escoger-multi-campo" && campo.opciones && campo.opciones.length > 0 && (
+                                            <Box width="100%" display="flex" justifyContent="center">
+                                                <VStack spacing={4} width="100%">
+                                                    {/* Opciones originales */}
+                                                    <SimpleGrid
+                                                        columns={{ base: 1, sm: 2, md: campo.opciones.length < 4 ? campo.opciones.length : 4 }}
+                                                        spacing={{ base: 2, sm: 3, md: 4 }}
+                                                        display="inline-grid"
+                                                        width={{ base: "100%", sm: "auto" }}
+                                                    >
+                                                        {campo.opciones.map((opcionObj, opcionObjIndex) => {
+                                                            const mainSelected = formValues[`${step.nombre}_${campo.nombre}_main`] === opcionObj.nombre;
+                                                            return (
+                                                                <Box key={opcionObjIndex} width="100%">
+                                                                    <Box
+                                                                        p={{ base: 2, sm: 3, md: 4 }}
+                                                                        borderRadius="md"
+                                                                        border="2px solid"
+                                                                        borderColor={mainSelected ? snap.color : "gray.600"}
+                                                                        bg={mainSelected ? `${snap.color}20` : "transparent"}
+                                                                        cursor="pointer"
+                                                                        onClick={() => {
+                                                                            setFormValues({
+                                                                                ...formValues,
+                                                                                [`${step.nombre}_${campo.nombre}_main`]: opcionObj.nombre,
+                                                                                [`${step.nombre}_${campo.nombre}_sub`]: ""
+                                                                            });
+                                                                        }}
+                                                                        _hover={{
+                                                                            borderColor: snap.color,
+                                                                            bg: `${snap.color}10`
+                                                                        }}
+                                                                        transition="all 0.2s"
+                                                                        margin={{ base: "2px", sm: "3px", md: "5px" }}
+                                                                        width={{ base: "100%", sm: "140px", md: "160px" }}
+                                                                        height={{ base: "80px", sm: "90px", md: "100px" }}
+                                                                        display="flex"
+                                                                        alignItems="center"
+                                                                        justifyContent="center"
+                                                                    >
+                                                                        <Text
+                                                                            color={mainSelected ? snap.color : "gray.400"}
+                                                                            textAlign="center"
+                                                                            fontWeight={mainSelected ? "bold" : "normal"}
+                                                                            width="100%"
+                                                                            fontSize={{ base: "sm", sm: "md" }}
+                                                                        >
+                                                                            {capitalizeFirstLetter(opcionObj.nombre)}
+                                                                        </Text>
                                                                     </Box>
-                                                                )}
-                                                            </Box>
-                                                        );
-                                                    })}
-                                                </SimpleGrid>
+                                                                    {mainSelected && opcionObj.opciones && (
+                                                                        <Box mt={2}>
+                                                                            {opcionObj.tipo === "escoger" && Array.isArray(opcionObj.opciones) && typeof opcionObj.opciones[0] === "string" && (
+                                                                                <SimpleGrid
+                                                                                    columns={{ base: 1, sm: 2, md: opcionObj.opciones.length < 4 ? opcionObj.opciones.length : 4 }}
+                                                                                    spacing={{ base: 2, sm: 3, md: 4 }}
+                                                                                >
+                                                                                    {opcionObj.opciones.map((subOpcion, subOpcionIndex) => {
+                                                                                        const subSelected = formValues[`${step.nombre}_${campo.nombre}_sub`] === subOpcion;
+                                                                                        return (
+                                                                                            <Box
+                                                                                                key={subOpcionIndex}
+                                                                                                p={{ base: 2, sm: 3 }}
+                                                                                                borderRadius="md"
+                                                                                                border="2px solid"
+                                                                                                borderColor={subSelected ? snap.color : "gray.600"}
+                                                                                                bg={subSelected ? `${snap.color}20` : "transparent"}
+                                                                                                cursor="pointer"
+                                                                                                onClick={() => {
+                                                                                                    setFormValues({
+                                                                                                        ...formValues,
+                                                                                                        [`${step.nombre}_${campo.nombre}_sub`]: subOpcion
+                                                                                                    });
+                                                                                                }}
+                                                                                                _hover={{
+                                                                                                    borderColor: snap.color,
+                                                                                                    bg: `${snap.color}10`
+                                                                                                }}
+                                                                                                transition="all 0.2s"
+                                                                                                margin={{ base: "2px", sm: "3px" }}
+                                                                                                width={{ base: "100%", sm: "120px" }}
+                                                                                                display="flex"
+                                                                                                alignItems="center"
+                                                                                                justifyContent="center"
+                                                                                            >
+                                                                                                <Text
+                                                                                                    color={subSelected ? snap.color : "gray.400"}
+                                                                                                    textAlign="center"
+                                                                                                    fontWeight={subSelected ? "bold" : "normal"}
+                                                                                                    width="100%"
+                                                                                                    fontSize={{ base: "sm", sm: "md" }}
+                                                                                                >
+                                                                                                    {capitalizeFirstLetter(subOpcion)}
+                                                                                                </Text>
+                                                                                            </Box>
+                                                                                        );
+                                                                                    })}
+                                                                                </SimpleGrid>
+                                                                            )}
+                                                                            {opcionObj.tipo === "escoger-tipo" && Array.isArray(opcionObj.opciones) && typeof opcionObj.opciones[0] === "object" && (
+                                                                                <VStack spacing={2} align="center">
+                                                                                    {opcionObj.opciones.map((subObj, subObjIndex) => (
+                                                                                        <Box key={subObjIndex} p={2} borderRadius="md" border="2px dashed" borderColor="gray.500" width="100%">
+                                                                                            <Text color="gray.300" fontWeight="bold" textAlign="center">
+                                                                                                {capitalizeFirstLetter(subObj.nombre)}
+                                                                                            </Text>
+                                                                                            {subObj.tipo === "color" && (
+                                                                                                <ColorSelector
+                                                                                                    stepNombre={step.nombre}
+                                                                                                    campoNombre={campo.nombre}
+                                                                                                    subObjNombre={subObj.nombre}
+                                                                                                />
+                                                                                            )}
+                                                                                        </Box>
+                                                                                    ))}
+                                                                                </VStack>
+                                                                            )}
+                                                                        </Box>
+                                                                    )}
+                                                                </Box>
+                                                            );
+                                                        })}
+                                                    </SimpleGrid>
+
+                                                    {/* Botón de selector de modelo (si está habilitado) */}
+                                                    {campo["selector-de-modelo"] === true && (
+                                                        <Box width="100%" display="flex" justifyContent="center">
+                                                            <ModelSelectorButton
+                                                                stepNombre={step.nombre}
+                                                                campoNombre={campo.nombre}
+                                                                isSelected={formValues[`${step.nombre}_${campo.nombre}_modelo`] !== undefined}
+                                                            />
+                                                        </Box>
+                                                    )}
+                                                </VStack>
                                             </Box>
                                         )}
 
@@ -826,6 +985,21 @@ const DetailsForm = () => {
                     </Formik>
                 </Box>
             </Flex>
+
+            {/* Model Selector Dialog */}
+            <ModelSelectorDialog
+                isOpen={isModelSelectorOpen}
+                onClose={handleCloseModelSelector}
+                onModelSelect={(modelData) => {
+                    const selectedModel = {
+                        modelIndex: modelData.selectedCollar,
+                        colors: modelData.colors,
+                        modelName: `Modelo ${modelData.selectedCollar + 1}`
+                    };
+                    handleModelSelection(selectedModel);
+                }}
+                initialModelData={currentModelField ? formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_modelo`] : null}
+            />
         </>
     );
 };

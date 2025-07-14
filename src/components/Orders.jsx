@@ -1,27 +1,29 @@
 import {
-    Box,
-    Container,
-    SimpleGrid,
-    Text,
     Badge,
-    Heading,
-    Flex,
-    VStack,
+    Box,
     Button,
-    HStack,
     Center,
-    Input,
-    Stack,
-    Spinner,
-    IconButton,
+    Container,
+    Flex,
     Grid,
-    useBreakpointValue
+    Heading,
+    HStack,
+    IconButton,
+    Input,
+    SimpleGrid,
+    Spinner,
+    Stack,
+    Text,
+    useBreakpointValue,
+    VStack
 } from "@chakra-ui/react";
-import { Formik, Form, Field } from 'formik';
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import {Field, Form, Formik} from 'formik';
+import {useCallback, useEffect, useState} from 'react';
+import {Link} from 'react-router-dom';
 import axiosInstance from "../axiosConfig";
-import { IoArrowBackOutline } from "react-icons/io5";
+import {IoArrowBackOutline} from "react-icons/io5";
+import {MdArrowLeft, MdArrowRight} from "react-icons/md"
+import OrderDetailsDialog from "./OrderDetailsDialog";
 
 const PAGE_SIZE = 30;  // Constante para el tamaño de página
 
@@ -36,8 +38,11 @@ function Orders() {
     });
     const [isLoading, setIsLoading] = useState(false);
 
+    const [currentProductIndex, setCurrentProductIndex] = useState({});
+
     const inputHeight = useBreakpointValue({ base: "36px", sm: "40px", md: "40px" });
     const inputFontSize = useBreakpointValue({ base: "14px", sm: "16px", md: "16px" });
+
     // Función para colores
     const getRgbColor = (colorStr) => {
         if (!colorStr || typeof colorStr !== "string") {
@@ -59,6 +64,7 @@ function Orders() {
             return "gray";
         }
     };
+
     // Función para obtener los vendedores
     const fetchSellers = async () => {
         try {
@@ -92,6 +98,15 @@ function Orders() {
                 previous: response.data.previous,
                 current: page
             });
+
+            // Inicializar el índice del producto actual para cada orden
+            const initialProductIndex = {};
+            response.data.results.forEach(order => {
+                if (order.products && order.products.length > 0) {
+                    initialProductIndex[order.id] = 0;
+                }
+            });
+            setCurrentProductIndex(initialProductIndex);
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 setItems([]);
@@ -109,11 +124,43 @@ function Orders() {
         }
     };
 
+    // Función para navegar al siguiente producto
+    const nextProduct = (orderId) => {
+        const order = items.find(item => item.id === orderId);
+        if (order && order.products) {
+            const currentIndex = currentProductIndex[orderId] || 0;
+            if (currentIndex < order.products.length - 1) {
+                setCurrentProductIndex(prev => ({
+                    ...prev,
+                    [orderId]: currentIndex + 1
+                }));
+            }
+        }
+    };
+
+    // Función para navegar al producto anterior
+    const prevProduct = (orderId) => {
+        const currentIndex = currentProductIndex[orderId] || 0;
+        if (currentIndex > 0) {
+            setCurrentProductIndex(prev => ({
+                ...prev,
+                [orderId]: currentIndex - 1
+            }));
+        }
+    };
+
+    // Función para obtener el producto actual de una orden
+    const getCurrentProduct = (order) => {
+        if (!order.products || order.products.length === 0) return null;
+        const currentIndex = currentProductIndex[order.id] || 0;
+        return order.products[currentIndex];
+    };
+
     // Función debounced para fetchOrders
     const debouncedFetchOrders = useCallback(
         (() => {
-            let timeoutId;
             return (page, filters) => {
+                let timeoutId;
                 if (timeoutId) {
                     clearTimeout(timeoutId);
                 }
@@ -238,9 +285,8 @@ function Orders() {
                                             size="md"
                                             colorScheme="gray"
                                             borderColor="gray.400"
-                                            color="gray.700"
                                             _hover={{
-                                                bg: "gray.100"
+                                                bg: "gray.500"
                                             }}
                                         >
                                             Limpiar
@@ -440,86 +486,137 @@ function Orders() {
                         spacing={8}
                         px={2}
                     >
-                        {items.map((order) => (
-                            <Box
-                                key={order.id}
-                                borderWidth="1px"
-                                borderRadius="lg"
-                                overflow="hidden"
-                                boxShadow="sm"
-                                bg="white"
-                                m={2}
-                            >
+                        {items.map((order) => {
+                            const currentProduct = getCurrentProduct(order);
+                            const currentIndex = currentProductIndex[order.id] || 0;
+                            const totalProducts = order.products ? order.products.length : 0;
+
+                            if (!currentProduct) return null;
+
+                            return (
                                 <Box
-                                    p={3}
-                                    bg="blue.500"
-                                    color="white"
+                                    key={`${order.id}-${currentIndex}`}
+                                    borderWidth="1px"
+                                    borderRadius="lg"
+                                    overflow="hidden"
+                                    boxShadow="sm"
+                                    bg="white"
+                                    m={2}
                                 >
-                                    <Flex justify="space-between" align="center">
-                                        <Heading size="md" color="white">Orden #{order.id}</Heading>
-                                        <Badge
-                                            colorScheme="whiteAlpha"
-                                            color="white"
-                                            bg="whiteAlpha.300"
-                                        >
-                                            {order.sex}
-                                        </Badge>
-                                    </Flex>
-                                </Box>
-                                <VStack spacing={2} p={3} align="stretch">
-                                    <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                                        <Box>
-                                            <Text fontWeight="bold" color="gray.700" fontSize="sm">Cliente</Text>
-                                            <Text color="gray.900">{order.client?.name}</Text>
-                                            <Text fontSize="xs" color="gray.500">{order.client?.email}</Text>
-                                        </Box>
+                                    <Box
+                                        p={3}
+                                        bg="blue.500"
+                                        color="white"
+                                    >
+                                        <Flex justify="space-between" align="center">
+                                            <Heading size="md" color="white">Orden ID: {order.id}</Heading>
+                                            <Badge
+                                                colorScheme="whiteAlpha"
+                                                color="white"
+                                                bg="whiteAlpha.300"
+                                            >
+                                                {currentProduct.sex}
+                                            </Badge>
+                                        </Flex>
 
-                                        <Box>
-                                            <Text fontWeight="bold" color="gray.700" fontSize="sm">Producto</Text>
-                                            <Text color="gray.900">{order.prenda?.name}</Text>
-                                            <Flex gap={2} mt={1}>
-                                                <VStack spacing={2} p={3} align="stretch">
-                                                    <Badge colorScheme="purple" fontSize="xs">Talla: {order.size}</Badge>
-                                                    <Badge colorScheme="green" fontSize="xs">Cantidad: {order.quantity}</Badge>
-                                                </VStack>
-
+                                        {/* Navegación de productos */}
+                                        {totalProducts > 1 && (
+                                            <Flex justify="space-between" align="center" mt={2}>
+                                                <Text fontSize="sm" color="whiteAlpha.900">
+                                                    Producto {currentIndex + 1} de {totalProducts}
+                                                </Text>
+                                                <HStack spacing={2}>
+                                                    <IconButton
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        color="white"
+                                                        _hover={{ bg: "whiteAlpha.200" }}
+                                                        onClick={() => prevProduct(order.id)}
+                                                        disabled={currentIndex === 0}
+                                                        aria-label="Producto anterior"
+                                                    >
+                                                        <MdArrowLeft />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        color="white"
+                                                        _hover={{ bg: "whiteAlpha.200" }}
+                                                        onClick={() => nextProduct(order.id)}
+                                                        disabled={currentIndex === totalProducts - 1}
+                                                        aria-label="Siguiente producto"
+                                                    >
+                                                        <MdArrowRight />
+                                                    </IconButton>
+                                                </HStack>
                                             </Flex>
-                                        </Box>
-                                    </Grid>
+                                        )}
+                                    </Box>
+                                    <VStack spacing={2} p={3} align="stretch">
+                                        <Grid templateColumns="repeat(2, 1fr)" gap={3}>
+                                            <Box>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Cliente</Text>
+                                                <Text color="gray.900">{order.client?.name}</Text>
+                                                <Text fontSize="xs" color="gray.500">{order.client?.email}</Text>
+                                            </Box>
 
-                                    <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                                        <Box>
-                                            <Text fontWeight="bold" color="gray.700" fontSize="sm">Tela</Text>
-                                            <Text color="gray.900" fontSize="sm">Código: {order.tela?.code}</Text>
-                                            <HStack spacing={2} p={3} align="stretch">
-                                                <Text color="gray.900" fontSize="sm">Color: </Text>
-                                                <Box
-                                                    width="20px"
-                                                    height="20px"
-                                                    borderRadius="md"
-                                                    backgroundColor={getRgbColor(order.tela?.color)}
-                                                    margin="0 auto"
-                                                    mt={1}
-                                                    border="2px solid white"
+                                            <Box>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Producto</Text>
+                                                <Text color="gray.900">{currentProduct.prenda?.name}</Text>
+                                                <Flex gap={2} mt={1}>
+                                                    <VStack spacing={2} p={3} align="stretch">
+                                                        <Badge colorScheme="purple" fontSize="xs">Talla: {currentProduct.size}</Badge>
+                                                        <Badge colorScheme="green" fontSize="xs">Cantidad: {currentProduct.quantity}</Badge>
+                                                    </VStack>
+                                                </Flex>
+                                            </Box>
+                                        </Grid>
+
+                                        <Grid templateColumns="repeat(2, 1fr)" gap={3}>
+                                            <Box>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Tela</Text>
+                                                <Text color="gray.900" fontSize="sm">Código: {currentProduct.tela?.code}</Text>
+                                                <HStack spacing={2} p={3} align="stretch">
+                                                    <Text color="gray.900" fontSize="sm">Color: </Text>
+                                                    <Box
+                                                        width="20px"
+                                                        height="20px"
+                                                        borderRadius="md"
+                                                        backgroundColor={getRgbColor(currentProduct.tela?.color)}
+                                                        margin="0 auto"
+                                                        mt={1}
+                                                        border="2px solid white"
+                                                    />
+                                                </HStack>
+                                            </Box>
+
+                                            <Box>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Vendedor</Text>
+                                                <Text color="gray.900">{order.seller?.username}</Text>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm" mt={1}>
+                                                    Cortador
+                                                </Text>
+                                                <Text color="gray.900">{order.cortador?.name}</Text>
+                                                <Text fontWeight="bold" color="gray.700" fontSize="sm" mt={1}>
+                                                    Fecha de Orden
+                                                </Text>
+                                                <Text fontSize="xs" color="gray.900">
+                                                    {formatDate(order.order_date)}
+                                                </Text>
+                                            </Box>
+                                        </Grid>
+
+                                        {currentProduct.details && (
+                                            <Box className="text-center">
+                                                <OrderDetailsDialog
+                                                    details={JSON.parse(currentProduct.details)}
                                                 />
-                                            </HStack>
-
-                                        </Box>
-
-                                        <Box>
-                                            <Text fontWeight="bold" color="gray.700" fontSize="sm">Vendedor</Text>
-                                            <Text color="gray.900">{order.seller?.username}</Text>
-                                            <Text fontWeight="bold" color="gray.700" fontSize="sm" mt={1}>
-                                                Fecha de Orden
-                                            </Text>
-                                            <Text fontSize="xs" color="gray.900">
-                                                {formatDate(order.order_date)}
-                                            </Text>
-                                        </Box>
-                                    </Grid>
-                                </VStack>
-                            </Box>
-                        ))}
+                                            </Box>
+                                        )}
+                                    </VStack>
+                                </Box>
+                            );
+                        })}
                     </SimpleGrid>
                 )}
             </Container>

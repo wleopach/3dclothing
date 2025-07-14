@@ -11,10 +11,12 @@ import Orders from "./components/Orders.jsx";
 import { Provider } from "./components/ui/provider"
 import Home from "./components/Home";
 import ModuleCurrentOrder from "./components/ModuleCurrentOrder";
+import StatePersistence from "./components/StatePersistence";
 
 function App() {
     return (
         <Provider>
+            <StatePersistence />
             <HashRouter >
                 <Routes>
                     <Route path="/" element={<LoginForm />} />
