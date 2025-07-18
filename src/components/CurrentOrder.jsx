@@ -6,13 +6,14 @@ const CurrentOrder = () => {
     const snap = useSnapshot(state);
 
     return (
-        <Card.Root width="320px">
+        <Card.Root width="320px" bg="gray.900">
             <Card.Body gap="2">
                 <Text fontWeight="semibold" textStyle="xl" textAlign="center" color="#EFBD48">
                     Datos de la orden Actual
                 </Text>
-                <Text fontWeight="semibold" textStyle="sm">
-                    <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Cliente : </Text> {snap.clientData?.name || "Sin cliente"}
+                <Text fontWeight="semibold" textStyle="sm" color="white">
+                    <Text as="span" fontWeight="semibold" textStyle="sm" color="#EFBD48">Cliente : </Text>
+                    {snap.clientData?.name || "Sin cliente"}
                 </Text>
                 <CurrentProduct
                     productName={snap.currentOrder.productName}

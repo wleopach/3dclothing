@@ -10,20 +10,25 @@ import { modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
 import { useSnapshot } from "valtio";
 import { state } from "../../store";
 import axiosInstance from "../../axiosConfig";
+import types from "./collars/TypeMap";
 
-function ClothingModelSelector({ onModelSelect, initialModelData, showModelButtons = true }) {
+function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, showModelButtons = true }) {
     const snap = useSnapshot(state);
     const fontSize = "sm";
     const colorBoxSize = "50px";
 
     // Array of all models for easy access
-    const modelos = [
+    let modelos = [
         modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
         modelo18, modelo8, modelo9, pantalon6, modelo20, pantalon11,
         modelo12, modelo1, modelo7, modelo19, modelo2, pantalon10,
         pantalon9, pantalon1, pantalon7, modelo16, modelo14, pantalon4,
         modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3
     ];
+
+    if (typoModelo) {
+        modelos = types[typoModelo]
+    }
 
     // Get all unique color part IDs from all models
     const getAllColorIds = () => {
@@ -81,7 +86,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
     React.useEffect(() => {
         const fetchModelColors = async () => {
             if (!snap.currentOrder.stock) return;
-            
+
             // Si ya tenemos colores en el store y el stock no ha cambiado, no hacer la llamada
             if (snap.modelColorsData.length > 0) return;
 
@@ -119,7 +124,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
             if (initialModelData.modelIndex !== undefined) {
                 setSelectedCollar(initialModelData.modelIndex);
             }
-            
+
             // Establecer los colores guardados
             if (initialModelData.colors) {
                 setColors(prevColors => ({
@@ -129,6 +134,21 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
             }
         }
     }, [initialModelData]);
+
+    // Selección automática cuando solo hay una parte modificable
+    React.useEffect(() => {
+        const currentColorParts = getCurrentColorParts();
+        const colorPartKeys = Object.keys(currentColorParts);
+        
+        // Si solo hay una parte modificable, seleccionarla automáticamente
+        if (colorPartKeys.length === 1 && !selectedPart) {
+            setSelectedPart(colorPartKeys[0]);
+        }
+        // Si hay más de una parte y ninguna está seleccionada, limpiar la selección
+        else if (colorPartKeys.length > 1 && selectedPart && !colorPartKeys.includes(selectedPart)) {
+            setSelectedPart(null);
+        }
+    }, [selectedCollar, selectedPart]);
 
     const getCurrentModel = () => {
         return modelos[selectedCollar];
@@ -452,6 +472,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
                                     onClick={() => setSelectedCollar(index)}
                                     color="orange"
                                     minW="80px"
+                                    style={selectedCollar === index ? { backgroundColor: '#2b6cb0', color: 'white' } : {}}
                                 >
                                     Modelo {index + 1}
                                 </Button>
@@ -463,8 +484,8 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
 
             <Center w="100%" mb={2}>
                 <Box
-                    width={["400px", "550px", "700px", "800px"]}
-                    height={["500px", "650px", "800px", "900px"]}
+                    width={["400px", "550px"]}
+                    height={["500px", "650px"]}
                     position="relative"
                     border="1px solid #333"
                     borderRadius="md"
@@ -501,8 +522,8 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
                         <Text color="white" fontSize={fontSize} textAlign="center">
                             {selectedPart ? (
                                 <React.Fragment>
-                                    Selected: {selectedPart.replace('color', 'Part ')}
-                                    (Modelo {selectedCollar + 1})
+                                    Parte selecionada : {selectedPart.replace('color', '')}
+                                    {/*(Modelo {selectedCollar + 1})*/}
                                     <Box
                                         as="span"
                                         display="inline-block"
@@ -523,7 +544,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
                     {/* Alternative: Part selection buttons for mobile */}
                     <Box display={["block", "block", "none"]} mb={2}>
                         <Text color="white" fontSize={fontSize} mb={1}>
-                            Or select a part to color:
+                            Selecciona una parte para colorear:
                         </Text>
                         <Flex wrap="wrap" gap={2} justify="center">
                             {Object.keys(currentColorParts).map((colorId) => (
@@ -545,14 +566,14 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
                                         opacity: 0.8
                                     }}
                                 >
-                                    {colorId.replace('color', 'Part ')}
+                                    {colorId.replace('color', 'Parte ')}
                                 </Box>
                             ))}
                         </Flex>
                     </Box>
 
                     <Text color="white" fontSize={fontSize} flexShrink={0}>
-                        Available Colors:
+                        Colores Disponibles:
                     </Text>
 
                     <Box
@@ -632,7 +653,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, showModelButto
                     </Box>
                 </>
             )}
-            
+
             {/* Botón de Confirmación de Selección de Modelo */}
             {onModelSelect && (
                 <Center w="100%" mt={4}>

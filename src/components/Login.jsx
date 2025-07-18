@@ -4,7 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
 import { useSnapshot } from "valtio";
-import {state} from "../store";
+import {clearSavedState, setDefaultState, state} from "../store";
 import axiosInstance from "./../axiosConfig";
 
 const LoginForm = () => {
@@ -30,6 +30,8 @@ const LoginForm = () => {
             state.user = userData;
             state.isUnLogged=false;
             state.showPanel = true;
+            clearSavedState();
+            setDefaultState();
             navigate("/control-panel");
             localStorage.setItem("token", userData.access); // Store token in localStorage
         } catch (err) {

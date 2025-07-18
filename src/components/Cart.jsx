@@ -13,6 +13,9 @@ const Cart = () => {
     const [cortadores, setCortadores] = useState([]);
     const [selectedCortador, setSelectedCortador] = useState(null);
     const [showError, setShowError] = useState(false);
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         const fetchCortadores = async () => {
@@ -26,6 +29,27 @@ const Cart = () => {
 
         fetchCortadores();
     }, []);
+
+    // Efecto para ocultar la alerta de éxito después de 3 segundos
+    useEffect(() => {
+        if (showSuccessAlert) {
+            const timer = setTimeout(() => {
+                setShowSuccessAlert(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccessAlert]);
+
+    // Efecto para ocultar la alerta de error después de 5 segundos
+    useEffect(() => {
+        if (showErrorAlert) {
+            const timer = setTimeout(() => {
+                setShowErrorAlert(false);
+                setErrorMessage("");
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [showErrorAlert]);
 
     const handleCortadorChange = (cortadorId, setFieldValue) => {
         const cortador = cortadores.find(c => c.id == cortadorId);
@@ -47,7 +71,6 @@ const Cart = () => {
         }
 
         try {
-
             const products = snap.cart.map(order => ({
                 ...order
             }));
@@ -64,8 +87,16 @@ const Cart = () => {
             state.justCheckedOut = true;
             // Clear the cart after successful submission
             checkout();
+            // Mostrar alerta de éxito
+            setShowSuccessAlert(true);
+            setShowErrorAlert(false);
+            setErrorMessage("");
         } catch (error) {
             console.error("Error submitting order:", error.response?.data || error.message);
+            // Mostrar alerta de error
+            setShowErrorAlert(true);
+            setErrorMessage(error.response?.data?.message || "Error al enviar la orden. Por favor, inténtelo de nuevo.");
+            setShowSuccessAlert(false);
         }
     };
 
@@ -83,6 +114,51 @@ const Cart = () => {
 
     return (
         <>
+            {/* Alertas flotantes con posicionamiento absoluto */}
+            {showSuccessAlert && (
+                <Box
+                    position="fixed"
+                    top="20px"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    zIndex="9999"
+                    bg="green.500"
+                    color="white"
+                    px={6}
+                    py={4}
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    maxW="400px"
+                    textAlign="center"
+                >
+                    <Text fontWeight="bold" fontSize="md">
+                        ✅ Orden enviada con éxito
+                    </Text>
+                </Box>
+            )}
+
+            {showErrorAlert && (
+                <Box
+                    position="fixed"
+                    top="20px"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    zIndex="9999"
+                    bg="red.500"
+                    color="white"
+                    px={6}
+                    py={4}
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    maxW="400px"
+                    textAlign="center"
+                >
+                    <Text fontWeight="bold" fontSize="md">
+                        ❌ {errorMessage}
+                    </Text>
+                </Box>
+            )}
+
             <Box
                 p={{ base: 3, md: 4 }}
                 borderWidth={1}

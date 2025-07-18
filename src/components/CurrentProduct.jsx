@@ -23,7 +23,7 @@ function CurrentProduct({productName, cortadorName, fabricName, colorSelected, c
     };
 
     return (
-        <Box mb={[1, 2, 3]}>
+        <Box mb={[1, 2, 3]} color="white">
             <VStack spacing={[1, 2, 4]} align="start">
                 {productName && (
                     <Text fontSize={["xs", "sm", "md"]} fontWeight="semibold">

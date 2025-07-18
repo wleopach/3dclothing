@@ -23,9 +23,15 @@ import {
     DialogCloseTrigger
 } from "@/components/ui/dialog";
 
-const OrderDetailsDialog = ({ details }) => {
+const OrderDetailsDialog = ({ details, productName }) => {
     const [isModelViewerOpen, setIsModelViewerOpen] = useState(false);
     const [currentModelData, setCurrentModelData] = useState(null);
+
+    // Función para determinar si el producto es blusa
+    const isBlusa = () => {
+        if (!productName) return false;
+        return productName.toLowerCase().includes('blusa');
+    };
 
     // Función para formatear las claves del JSON
     const formatKey = (key) => {
@@ -89,6 +95,23 @@ const OrderDetailsDialog = ({ details }) => {
             }
         });
         return models;
+    };
+
+    // Función para encontrar tipos seleccionados (no modelos) en los detalles
+    const findSelectedTypes = () => {
+        const types = [];
+        Object.entries(details).forEach(([key, value]) => {
+            // Excluir campos que terminan en _modelo y campos que son objetos
+            if (!key.endsWith('_modelo') && typeof value !== 'object' && value !== null && value !== '') {
+                const formattedFieldName = formatKey(key);
+                types.push({
+                    fieldName: formattedFieldName,
+                    value: value,
+                    originalKey: key
+                });
+            }
+        });
+        return types;
     };
 
     // Función para abrir el visor de modelos
@@ -191,6 +214,7 @@ const OrderDetailsDialog = ({ details }) => {
     );
 
     const selectedModels = findSelectedModels();
+    const selectedTypes = findSelectedTypes();
 
     return (
         <>
@@ -203,7 +227,7 @@ const OrderDetailsDialog = ({ details }) => {
                 </DialogTrigger>
 
                 <DialogContent
-                    bgGradient="linear(to-br, #232526, #414345)"
+                    bg="gray.900"
                     borderRadius="2xl"
                     boxShadow="2xl"
                     p={0}
@@ -220,7 +244,70 @@ const OrderDetailsDialog = ({ details }) => {
                         </DialogCloseTrigger>
                     </DialogHeader>
                     <DialogBody px={8} pb={8} pt={2}>
-                                <VStack spacing={8} align="stretch">
+                        <VStack spacing={8} align="stretch">
+                            {isBlusa() ? (
+                                // Visualización para blusas: solo modelos y tipos
+                                <>
+                                    {/* Modelos Seleccionados */}
+                                    {selectedModels.length > 0 && (
+                                        <>
+                                            <Box>
+                                                <Badge
+                                                    bg="green.600"
+                                                    color="white"
+                                                    fontSize="md"
+                                                    p={2}
+                                                    borderRadius="md"
+                                                    mb={3}
+                                                    fontWeight="bold"
+                                                >
+                                                    Modelos Seleccionados
+                                                </Badge>
+                                                <SimpleGrid columns={1} spacingY={3}>
+                                                    {selectedModels.map((model, index) => (
+                                                        <ModelBox
+                                                            key={index}
+                                                            fieldName={model.fieldName}
+                                                            modelData={model.modelData}
+                                                        />
+                                                    ))}
+                                                </SimpleGrid>
+                                            </Box>
+                                            <Box borderBottomWidth="1px" borderColor="blue.200" my={2} />
+                                        </>
+                                    )}
+
+                                    {/* Bolsillos */}
+                                    {selectedTypes.length > 0 && (
+                                        <>
+                                            <Box>
+                                                <Badge
+                                                    bg="blackAlpha.800"
+                                                    color="white"
+                                                    fontSize="md"
+                                                    p={2}
+                                                    borderRadius="md"
+                                                    mb={3}
+                                                    fontWeight="bold"
+                                                >
+                                                    Bolsillos
+                                                </Badge>
+                                                <SimpleGrid columns={2} spacingX={4} spacingY={3}>
+                                                    {selectedTypes.map((type, index) => (
+                                                        <DetailBox 
+                                                            key={index}
+                                                            label={type.fieldName}
+                                                            value={type.value}
+                                                        />
+                                                    ))}
+                                                </SimpleGrid>
+                                            </Box>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                // Visualización para pantalones: mantener la estructura actual
+                                <>
                                     {/* Modelos Seleccionados */}
                                     {selectedModels.length > 0 && (
                                         <>
@@ -283,30 +370,10 @@ const OrderDetailsDialog = ({ details }) => {
                                             Bolsillos
                                         </Badge>
                                         <SimpleGrid columns={2} spacingX={4} spacingY={3}>
-                                            <DetailBox label="Tipo de Bolsillo Lateral" value={details["bolsillos_lateral_main"]} />
-                                            <DetailBox label="Valor" value={details["bolsillos_lateral_sub"]} />
-                                            <DetailBox label="Parche trasero" value={details["bolsillos_parche trasero"]} />
+                                            <DetailBox label="Tipo de Bolsillo Lateral" value={details["bolsillos_lateral_main"] + " --> " + details["bolsillos_lateral_sub"]} />
                                             <br />
-                                            <DetailBox label="Parche rodilla" value={details["bolsillos_parche rodilla_main"]} />
-                                            <DetailBox
-                                                label="Parche rodilla Sesgo"
-                                                isColorBox={typeof details["bolsillos_parche rodilla_sesgo"] === 'object' && details["bolsillos_parche rodilla_sesgo"] !== null}
-                                                value={
-                                                    typeof details["bolsillos_parche rodilla_sesgo"] === 'object' && details["bolsillos_parche rodilla_sesgo"] !== null ? (
-                                                        <>
-                                                            <Box
-                                                                width="18px"
-                                                                height="18px"
-                                                                borderRadius="md"
-                                                                backgroundColor={getRgbColor(details["bolsillos_parche rodilla_sesgo"].color)}
-                                                                border="2px solid white"
-                                                                display="inline-block"
-                                                            />
-                                                            <Text as="span" fontWeight="bold" color="blue.600" fontSize="md">{details["bolsillos_parche rodilla_sesgo"].code}</Text>
-                                                        </>
-                                                    ) : details["bolsillos_parche rodilla_sesgo"]
-                                                }
-                                            />
+                                            <DetailBox label="Parche trasero" value={details["bolsillos_parche trasero"] ? details["bolsillos_parche trasero"] : "Ninguno"} />
+                                            <DetailBox label="Parche rodilla" value={details["bolsillos_parche rodilla"] ? details["bolsillos_parche rodilla"] : "Ninguno"} />
                                         </SimpleGrid>
                                     </Box>
                                     <Box borderBottomWidth="1px" borderColor="blue.200" my={2} />
@@ -330,7 +397,9 @@ const OrderDetailsDialog = ({ details }) => {
                                             <DetailBox label="Dimensiones Largo" value={details["bota_Dimensiones_Largo"]} subValue="cm" />
                                         </SimpleGrid>
                                     </Box>
-                                </VStack>
+                                </>
+                            )}
+                        </VStack>
                     </DialogBody>
                 </DialogContent>
             </DialogRoot>
@@ -343,6 +412,7 @@ const OrderDetailsDialog = ({ details }) => {
                 initialModelData={currentModelData}
                 title="Visualizar Modelo Seleccionado"
                 showModelButtons={false}
+                modelType={currentModelData?.modelType}
             />
         </>
     );

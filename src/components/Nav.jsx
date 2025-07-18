@@ -20,6 +20,7 @@ export default function Nav() {
     };
 
     const isPathCart = isCurrentRoute('/control-panel/current-order/cart');
+    const isShowButtonAddProduct = snap.cart.length > 0 && isPathCart;
 
     if (isPathCart || snap.justCheckedOut) return (
         <nav>
@@ -40,13 +41,13 @@ export default function Nav() {
                                 title="Nuevo Cliente"
                                 handleClick={() => {
                                     setDefaultState();
-                                    navigate("/control-panel")
+                                    navigate("/control-panel/current-order/client")
                                 }}
                                 customStyles={`w-fit px-4 py-2.5 font-bold text-sm ${isCurrentRoute('/control-panel') ? colorSelected : ''}`}
                             />
                         )}
 
-                        {isPathCart && (
+                        {isShowButtonAddProduct && (
                             <CustomButton
                                 type="filled"
                                 title="Agregar otro producto"
@@ -81,7 +82,7 @@ export default function Nav() {
                                     Nuevo Cliente
                                 </MenuItem>
                             )}
-                            {isPathCart && (
+                            {isShowButtonAddProduct && (
                                 <MenuItem
                                     onClick={() => {
                                         state.pickSize = false;

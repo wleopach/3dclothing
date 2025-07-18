@@ -69,22 +69,22 @@ const defaultState = {
     logoDecal:'./threejs.png',
     fullDecal:'./threejs.png',
     file_3d: 'shirt_v.glb',
-    showForm: savedState?.showForm ?? true,
-    isUnLogged: savedState?.isUnLogged ?? true,
-    showProductForm: savedState?.showProductForm ?? false,
-    pickColor: savedState?.pickColor ?? false,
-    user : savedState?.user ?? {},
-    userEmail : savedState?.userEmail ?? '',
-    clientData : savedState?.clientData ?? {},
-    colorsData: savedState?.colorsData ?? [],
-    modelColorsData: savedState?.modelColorsData ?? [], // Colores para el selector de modelo
-    currentOrder: savedState?.currentOrder ?? defaultOrder,
-    pickSize: savedState?.pickSize ?? false,
-    cart: savedState?.cart ?? [],
-    justCheckedOut: savedState?.justCheckedOut ?? false,
+    showForm: true,
+    isUnLogged: true,
+    showProductForm: false,
+    pickColor: false,
+    user : {},
+    userEmail : '',
+    clientData : {},
+    colorsData: [],
+    modelColorsData: [], // Colores para el selector de modelo
+    currentOrder: defaultOrder,
+    pickSize: false,
+    cart: [],
+    justCheckedOut: false,
 }
 
-let state = proxy(defaultState);
+let state;
 
 function setDefaultState() {
     const copy = JSON.parse(JSON.stringify(defaultState));

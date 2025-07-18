@@ -15,7 +15,8 @@ const ModelSelectorDialog = ({
     onModelSelect,
     initialModelData = null,
     title = "Seleccionar Modelo",
-    showModelButtons = true
+    showModelButtons = true,
+    modelType = null
 }) => {
     return (
         <DialogRoot open={isOpen} onOpenChange={onClose}>
@@ -57,6 +58,7 @@ const ModelSelectorDialog = ({
                             onModelSelect={onModelSelect}
                             initialModelData={initialModelData}
                             showModelButtons={showModelButtons}
+                            typoModelo={modelType}
                         />
                     </Box>
                 </DialogBody>

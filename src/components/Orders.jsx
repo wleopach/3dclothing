@@ -15,7 +15,8 @@ import {
     Stack,
     Text,
     useBreakpointValue,
-    VStack
+    VStack,
+    Separator
 } from "@chakra-ui/react";
 import {Field, Form, Formik} from 'formik';
 import {useCallback, useEffect, useState} from 'react';
@@ -234,11 +235,10 @@ function Orders() {
                                             height: inputHeight,
                                             fontSize: inputFontSize,
                                             padding: "8px",
-                                            borderRadius: "8px"
                                         }}>
-                                            <option value="">Seleccione un vendedor</option>
+                                            <option value="" style={{ backgroundColor: "#374151", color: "white" }}>Seleccione un vendedor</option>
                                             {sellers.map((seller) => (
-                                                <option value={seller.id} key={seller.id}>{seller.username}</option>
+                                                <option value={seller.id} key={seller.id} style={{ backgroundColor: "#374151", color: "white" }}>{seller.username}</option>
                                             ))}
                                         </Field>
                                     </Box>
@@ -445,7 +445,9 @@ function Orders() {
                     </Heading>
                 </Flex>
 
-                {renderFilters()}
+                <Box mb={8}>
+                    {renderFilters()}
+                </Box>
 
                 {isLoading ? (
                     <Center py={10}>
@@ -483,8 +485,7 @@ function Orders() {
                 ) : (
                     <SimpleGrid
                         columns={{ base: 1, md: 2, lg: 3 }}
-                        spacing={8}
-                        px={2}
+                        spacing={10}
                     >
                         {items.map((order) => {
                             const currentProduct = getCurrentProduct(order);
@@ -496,124 +497,203 @@ function Orders() {
                             return (
                                 <Box
                                     key={`${order.id}-${currentIndex}`}
-                                    borderWidth="1px"
-                                    borderRadius="lg"
+                                    borderWidth="2px"
+                                    borderRadius="xl"
                                     overflow="hidden"
-                                    boxShadow="sm"
+                                    boxShadow="0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)"
                                     bg="white"
                                     m={2}
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-8px)",
+                                        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.15)",
+                                        borderColor: "blue.300"
+                                    }}
+                                    position="relative"
+                                    _before={{
+                                        content: '""',
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: "4px",
+                                        background: "linear-gradient(90deg, #3182ce, #63b3ed, #3182ce)",
+                                        zIndex: 1
+                                    }}
                                 >
-                                    <Box
-                                        p={3}
-                                        bg="blue.500"
-                                        color="white"
+                                    {/* Encabezado: Información general de la orden */}
+                                    <Box 
+                                        p={6} 
+                                        bg="linear-gradient(135deg, #3182ce 0%, #2c5282 100%)" 
+                                        color="white" 
+                                        borderTopRadius="xl"
+                                        position="relative"
+                                        overflow="hidden"
+                                        _before={{
+                                            content: '""',
+                                            position: "absolute",
+                                            top: "-50%",
+                                            right: "-50%",
+                                            width: "200%",
+                                            height: "200%",
+                                            background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
+                                            zIndex: 0
+                                        }}
                                     >
-                                        <Flex justify="space-between" align="center">
-                                            <Heading size="md" color="white">Orden ID: {order.id}</Heading>
-                                            <Badge
-                                                colorScheme="whiteAlpha"
-                                                color="white"
-                                                bg="whiteAlpha.300"
-                                            >
-                                                {currentProduct.sex}
-                                            </Badge>
-                                        </Flex>
-
+                                        <Box position="relative" zIndex={1}>
+                                            <Flex justify="space-between" align="center" mb={4}>
+                                                <Heading size="lg" color="white" textShadow="0 2px 4px rgba(0,0,0,0.3)">
+                                                    Orden #{order.id}
+                                                </Heading>
+                                            </Flex>
+                                            <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={6}>
+                                                <Box>
+                                                    <Text fontWeight="bold" fontSize="sm" opacity={0.9} mb={1}>👤 Cliente</Text>
+                                                    <Text fontWeight="semibold" fontSize="md">{order.client?.name}</Text>
+                                                    <Text fontSize="xs" opacity={0.8}>{order.client?.email}</Text>
+                                                </Box>
+                                                <Box>
+                                                    <Text fontWeight="bold" fontSize="sm" opacity={0.9} mb={1}>🛍️ Vendedor</Text>
+                                                    <Text fontWeight="semibold" fontSize="md">{order.seller?.username}</Text>
+                                                    <Text fontWeight="bold" fontSize="sm" opacity={0.9} mt={2} mb={1}>✂️ Cortador</Text>
+                                                    <Text fontWeight="semibold" fontSize="md">{order.cortador?.name}</Text>
+                                                </Box>
+                                                <Box>
+                                                    <Text fontWeight="bold" fontSize="sm" opacity={0.9} mb={1}>📅 Fecha</Text>
+                                                    <Text fontWeight="semibold" fontSize="sm">{formatDate(order.order_date)}</Text>
+                                                </Box>
+                                            </Grid>
+                                        </Box>
+                                    </Box>
+                                    <Separator />
+                                    {/* Sección de productos */}
+                                    <Box p={6} bg="gray.50">
                                         {/* Navegación de productos */}
                                         {totalProducts > 1 && (
-                                            <Flex justify="space-between" align="center" mt={2}>
-                                                <Text fontSize="sm" color="whiteAlpha.900">
-                                                    Producto {currentIndex + 1} de {totalProducts}
+                                            <Flex justify="space-between" align="center" mb={4} p={3} bg="white" borderRadius="lg" boxShadow="sm">
+                                                <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                                                    📦 Producto {currentIndex + 1} de {totalProducts}
                                                 </Text>
                                                 <HStack spacing={2}>
                                                     <IconButton
                                                         size="sm"
-                                                        variant="ghost"
-                                                        color="white"
-                                                        _hover={{ bg: "whiteAlpha.200" }}
+                                                        variant="outline"
+                                                        colorScheme="blue"
+                                                        _hover={{ bg: "blue.50", transform: "scale(1.1)" }}
                                                         onClick={() => prevProduct(order.id)}
                                                         disabled={currentIndex === 0}
                                                         aria-label="Producto anterior"
+                                                        transition="all 0.2s ease"
                                                     >
                                                         <MdArrowLeft />
                                                     </IconButton>
                                                     <IconButton
                                                         size="sm"
-                                                        variant="ghost"
-                                                        color="white"
-                                                        _hover={{ bg: "whiteAlpha.200" }}
+                                                        variant="outline"
+                                                        colorScheme="blue"
+                                                        _hover={{ bg: "blue.50", transform: "scale(1.1)" }}
                                                         onClick={() => nextProduct(order.id)}
                                                         disabled={currentIndex === totalProducts - 1}
                                                         aria-label="Siguiente producto"
+                                                        transition="all 0.2s ease"
                                                     >
                                                         <MdArrowRight />
                                                     </IconButton>
                                                 </HStack>
                                             </Flex>
                                         )}
-                                    </Box>
-                                    <VStack spacing={2} p={3} align="stretch">
-                                        <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                                            <Box>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Cliente</Text>
-                                                <Text color="gray.900">{order.client?.name}</Text>
-                                                <Text fontSize="xs" color="gray.500">{order.client?.email}</Text>
-                                            </Box>
-
-                                            <Box>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Producto</Text>
-                                                <Text color="gray.900">{currentProduct.prenda?.name}</Text>
-                                                <Flex gap={2} mt={1}>
-                                                    <VStack spacing={2} p={3} align="stretch">
-                                                        <Badge colorScheme="purple" fontSize="xs">Talla: {currentProduct.size}</Badge>
-                                                        <Badge colorScheme="green" fontSize="xs">Cantidad: {currentProduct.quantity}</Badge>
+                                        
+                                        <Box bg="white" p={5} borderRadius="xl" boxShadow="0 4px 12px rgba(0,0,0,0.05)">
+                                            <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={6}>
+                                                <Box>
+                                                    <Text fontWeight="bold" color="gray.700" fontSize="md" mb={3} display="flex" alignItems="center">
+                                                        👕 Producto
+                                                    </Text>
+                                                    <Text color="gray.900" fontSize="lg" fontWeight="semibold" mb={3}>
+                                                        {currentProduct.prenda?.name}
+                                                    </Text>
+                                                    <VStack spacing={2} align="stretch">
+                                                        <Badge 
+                                                            colorScheme="purple" 
+                                                            fontSize="sm" 
+                                                            py={2} 
+                                                            px={3}
+                                                            borderRadius="lg"
+                                                            textAlign="center"
+                                                            boxShadow="sm"
+                                                        >
+                                                            📏 Talla: {currentProduct.size}
+                                                        </Badge>
+                                                        <Badge 
+                                                            colorScheme="green" 
+                                                            fontSize="sm" 
+                                                            py={2} 
+                                                            px={3}
+                                                            borderRadius="lg"
+                                                            textAlign="center"
+                                                            boxShadow="sm"
+                                                        >
+                                                            🔢 Cantidad: {currentProduct.quantity}
+                                                        </Badge>
+                                                        <Badge 
+                                                            colorScheme="blue" 
+                                                            fontSize="sm" 
+                                                            py={2} 
+                                                            px={3}
+                                                            borderRadius="lg"
+                                                            textAlign="center"
+                                                            boxShadow="sm"
+                                                        >
+                                                            👤 Sexo: {currentProduct.sex}
+                                                        </Badge>
                                                     </VStack>
-                                                </Flex>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                                            <Box>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Tela</Text>
-                                                <Text color="gray.900" fontSize="sm">Código: {currentProduct.tela?.code}</Text>
-                                                <HStack spacing={2} p={3} align="stretch">
-                                                    <Text color="gray.900" fontSize="sm">Color: </Text>
-                                                    <Box
-                                                        width="20px"
-                                                        height="20px"
-                                                        borderRadius="md"
-                                                        backgroundColor={getRgbColor(currentProduct.tela?.color)}
-                                                        margin="0 auto"
-                                                        mt={1}
-                                                        border="2px solid white"
-                                                    />
-                                                </HStack>
-                                            </Box>
-
-                                            <Box>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Vendedor</Text>
-                                                <Text color="gray.900">{order.seller?.username}</Text>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm" mt={1}>
-                                                    Cortador
-                                                </Text>
-                                                <Text color="gray.900">{order.cortador?.name}</Text>
-                                                <Text fontWeight="bold" color="gray.700" fontSize="sm" mt={1}>
-                                                    Fecha de Orden
-                                                </Text>
-                                                <Text fontSize="xs" color="gray.900">
-                                                    {formatDate(order.order_date)}
-                                                </Text>
-                                            </Box>
-                                        </Grid>
-
+                                                </Box>
+                                                <Box>
+                                                    <Text fontWeight="bold" color="gray.700" fontSize="md" mb={3} display="flex" alignItems="center">
+                                                        🧵 Tela
+                                                    </Text>
+                                                    <Box p={4} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                        <Text color="gray.900" fontSize="md" fontWeight="semibold" mb={2}>
+                                                            Código: {currentProduct.tela?.code}
+                                                        </Text>
+                                                        <Flex align="center" justify="space-between">
+                                                            <Text color="gray.700" fontSize="sm" fontWeight="medium">Color:</Text>
+                                                            <Box
+                                                                width="30px"
+                                                                height="30px"
+                                                                borderRadius="full"
+                                                                backgroundColor={getRgbColor(currentProduct.tela?.color)}
+                                                                border="3px solid white"
+                                                                boxShadow="0 2px 8px rgba(0,0,0,0.2)"
+                                                                position="relative"
+                                                                _after={{
+                                                                    content: '""',
+                                                                    position: "absolute",
+                                                                    top: "-2px",
+                                                                    left: "-2px",
+                                                                    right: "-2px",
+                                                                    bottom: "-2px",
+                                                                    borderRadius: "full",
+                                                                    background: "linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent)",
+                                                                    zIndex: -1
+                                                                }}
+                                                            />
+                                                        </Flex>
+                                                    </Box>
+                                                </Box>
+                                            </Grid>
+                                        </Box>
+                                        
+                                        {/* Detalles del producto */}
                                         {currentProduct.details && (
-                                            <Box className="text-center">
-                                                <OrderDetailsDialog
-                                                    details={JSON.parse(currentProduct.details)}
+                                            <Box mt={4} textAlign="center">
+                                                <OrderDetailsDialog 
+                                                    details={JSON.parse(currentProduct.details)} 
+                                                    productName={currentProduct.prenda?.name}
                                                 />
                                             </Box>
                                         )}
-                                    </VStack>
+                                    </Box>
                                 </Box>
                             );
                         })}

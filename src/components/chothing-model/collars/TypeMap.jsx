@@ -3,28 +3,30 @@ import { modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
     modelo12, modelo1, modelo7, modelo19, modelo2, pantalon10,
     pantalon9, pantalon1, pantalon7, modelo16, modelo14, pantalon4,
     modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3 }
-    from 'Collars';
+    from './Collars';
 
 const types = {
-    "cuello": [
-        modelo1, modelo2, modelo3, modelo4, modelo5, modelo6, 
-        modelo7, modelo8, modelo9, modelo10, modelo11, modelo12, modelo13
+    blusa_cuello: [
+        modelo3, modelo5, modelo6, modelo8,
+        modelo9, modelo10, modelo11, modelo12, modelo13,
+        modelo1, modelo7, modelo2, modelo4,
     ],
-    "bolsillo trasero bluza": [
-        modelo14, modelo15, modelo16, modelo18, modelo19, modelo20
-    ],
-    "bolsillo delantero bluza": [
+    blusa_parche_latral: [
+        modelo15, modelo18, modelo19, modelo20,
         modelo17
     ],
-    "pantalon sin bolsillo lateral": [
+    blusa_parche_trasero: [
+        modelo14, modelo16
+    ],
+    pantalon_bolsillo_delantero: [
         pantalon1
     ],
-    "pantalon con bolsillo lateral": [
-        pantalon2, pantalon4, pantalon5, pantalon6, pantalon7, 
-        pantalon8, pantalon9, pantalon10, pantalon11
-    ],
-    "pantalon con bolsillo trasero": [
+    pantalon_parche_trasero: [
         pantalon3
+    ],
+    pantalon_parche_rodilla: [
+        pantalon6, pantalon11, pantalon10, pantalon9, pantalon7, pantalon4,
+        pantalon8, pantalon2, pantalon5
     ]
 };
 

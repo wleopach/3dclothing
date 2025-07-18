@@ -21,6 +21,29 @@ const DetailsForm = () => {
     const [formValues, setFormValues] = useState({});
     const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
     const [currentModelField, setCurrentModelField] = useState(null);
+    const [currentModelType, setCurrentModelType] = useState(null);
+
+    // Helper function to check if model selector is required
+    const isModelSelectorRequired = (campo) => {
+        if (!campo["selector-de-modelo"]) return false;
+        // If it's an object, check the obligatorio property
+        if (typeof campo["selector-de-modelo"] === "object") {
+            return campo["selector-de-modelo"].obligatorio !== false;
+        }
+        // Legacy support: if it's true, it's required
+        return campo["selector-de-modelo"] === true;
+    };
+
+    // Helper function to get model type
+    const getModelType = (campo) => {
+        if (!campo["selector-de-modelo"]) return null;
+        // If it's an object, get the tipo property
+        if (typeof campo["selector-de-modelo"] === "object") {
+            return campo["selector-de-modelo"].tipo;
+        }
+        // Legacy support: get from tipo-selector-de-modelo
+        return campo["tipo-selector-de-modelo"];
+    };
 
     // Cargar los valores guardados cuando el componente se monta o cuando cambia el estado
     useEffect(() => {
@@ -86,24 +109,130 @@ const DetailsForm = () => {
         }
     }, [state.currentOrder.prenda.details]);
 
+    const getStepValidationErrors = (stepIndex) => {
+        const currentStepData = detailsData[stepIndex];
+        if (!currentStepData || !currentStepData.campos) return [];
+
+        const errors = [];
+        currentStepData.campos.forEach(campo => {
+            const fieldName = `${currentStepData.nombre}_${campo.nombre}`;
+
+            // Handle case where field only has selector-de-modelo without tipo
+            if (!campo.tipo && campo["selector-de-modelo"]) {
+                const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+                const isRequired = isModelSelectorRequired(campo);
+                
+                if (isRequired && !hasModelSelection) {
+                    errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                }
+            }
+
+            if (campo.tipo === "escoger") {
+                if (campo["selector-de-modelo"]) {
+                    const hasNormalSelection = formValues[fieldName] && formValues[fieldName].trim() !== '';
+                    const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+
+                    if (campo.obligatorio === false) {
+                        if (hasNormalSelection && !hasModelSelection) {
+                            errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                        }
+                    } else {
+                        if (!hasNormalSelection) {
+                            errors.push(`Debe seleccionar una opción para "${campo.nombre}"`);
+                        }
+                        if (hasNormalSelection && !hasModelSelection) {
+                            errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                        }
+                    }
+                } else {
+                    if (campo.obligatorio !== false && (!formValues[fieldName] || formValues[fieldName].trim() === '')) {
+                        errors.push(`Debe seleccionar una opción para "${campo.nombre}"`);
+                    }
+                }
+            }
+
+            if (campo.tipo === "escoger-multi-campo") {
+                if (campo["selector-de-modelo"]) {
+                    const hasNormalSelection = formValues[`${fieldName}_main`] && formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                    const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+
+                    if (campo.obligatorio === false) {
+                        if (hasNormalSelection && !hasModelSelection) {
+                            errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                        }
+                    } else {
+                        if (!hasNormalSelection) {
+                            errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                        }
+                        if (hasNormalSelection && !hasModelSelection) {
+                            errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                        }
+                    }
+                } else {
+                    if (campo.obligatorio !== false && (!formValues[`${fieldName}_main`] || !formValues[`${fieldName}_sub`] || formValues[`${fieldName}_sub`].trim() === '')) {
+                        errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                    }
+                }
+            }
+
+            if (campo.tipo === "input-number") {
+                if (campo.obligatorio !== false) {
+                    const hasEmptyValues = campo.opciones.some(opcion => {
+                        const value = formValues[`${fieldName}_${opcion}`];
+                        return value === undefined || value === '';
+                    });
+                    if (hasEmptyValues) {
+                        errors.push(`Debe completar todos los valores para "${campo.nombre}"`);
+                    }
+                }
+            }
+        });
+
+        return errors;
+    };
+
     const isStepComplete = (stepIndex) => {
         const currentStepData = detailsData[stepIndex];
         if (!currentStepData || !currentStepData.campos) return false;
 
         return currentStepData.campos.every(campo => {
-            // Skip validation if field is optional
-            if (campo.obligatorio === false) return true;
-
             const fieldName = `${currentStepData.nombre}_${campo.nombre}`;
+
+            // Handle case where field only has selector-de-modelo without tipo
+            if (!campo.tipo && campo["selector-de-modelo"]) {
+                const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
+                const isRequired = isModelSelectorRequired(campo);
+                
+                if (isRequired) {
+                    return hasModelSelection;
+                }
+                return true; // Optional model selector
+            }
 
             // Handle different field types
             if (campo.tipo === "escoger") {
                 // Check if field has model selector requirement
-                if (campo["selector-de-modelo"] === true) {
-                    // Field is valid if either a normal option is selected OR a model is selected
+                if (campo["selector-de-modelo"]) {
                     const hasNormalSelection = formValues[fieldName] && formValues[fieldName].trim() !== '';
                     const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
-                    return hasNormalSelection || hasModelSelection;
+
+                    // If field is optional (obligatorio === false)
+                    if (campo.obligatorio === false) {
+                        // If a normal option is selected, then model selection becomes mandatory
+                        if (hasNormalSelection) {
+                            return hasModelSelection;
+                        }
+                        // If no normal option is selected, field is valid (optional)
+                        return true;
+                    } else {
+                        // If field is mandatory (obligatorio === true or undefined), both normal option and model are required
+                        return hasNormalSelection && hasModelSelection;
+                    }
+                }
+
+                // If no model selector, just check if option is selected
+                if (campo.obligatorio === false) {
+                    return true; // Optional field without model selector
                 }
                 return formValues[fieldName] && formValues[fieldName].trim() !== '';
             }
@@ -111,15 +240,29 @@ const DetailsForm = () => {
             // console.log(formValues);
             if (campo.tipo === "escoger-multi-campo") {
                 // Check if field has model selector requirement
-                if (campo["selector-de-modelo"] === true) {
-                    // Field is valid if either a normal option is selected OR a model is selected
+                if (campo["selector-de-modelo"]) {
                     const hasNormalSelection = formValues[`${fieldName}_main`] && formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
                     const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
-                    return hasNormalSelection || hasModelSelection;
+
+                    // If field is optional (obligatorio === false)
+                    if (campo.obligatorio === false) {
+                        // If a normal option is selected, then model selection becomes mandatory
+                        if (hasNormalSelection) {
+                            return hasModelSelection;
+                        }
+                        // If no normal option is selected, field is valid (optional)
+                        return true;
+                    } else {
+                        // If field is mandatory (obligatorio === true or undefined), both normal option and model are required
+                        return hasNormalSelection && hasModelSelection;
+                    }
                 }
 
-                // Check if main option is selected
+                // If no model selector, check if main option is selected
                 const mainSelected = formValues[`${fieldName}_main`];
+                if (campo.obligatorio === false) {
+                    return true; // Optional field without model selector
+                }
                 if (!mainSelected) return false;
 
                 // For each option in the multi-campo
@@ -195,7 +338,8 @@ const DetailsForm = () => {
         setFormValues(newValues);
     };
 
-    const handleOpenModelSelector = (stepNombre, campoNombre) => {
+    const handleOpenModelSelector = (stepNombre, campoNombre, typoModelo) => {
+        setCurrentModelType(typoModelo);
         setCurrentModelField({ stepNombre, campoNombre });
         setIsModelSelectorOpen(true);
     };
@@ -306,7 +450,7 @@ const DetailsForm = () => {
         );
     };
 
-    const ModelSelectorButton = ({ stepNombre, campoNombre, isSelected }) => {
+    const ModelSelectorButton = ({ stepNombre, campoNombre, typoModelo, isSelected }) => {
         const selectedModel = formValues[`${stepNombre}_${campoNombre}_modelo`];
 
         return (
@@ -318,7 +462,7 @@ const DetailsForm = () => {
                     _hover={{
                         bg: isSelected ? "yellow.500" : "gray.500"
                     }}
-                    onClick={() => handleOpenModelSelector(stepNombre, campoNombre)}
+                    onClick={() => handleOpenModelSelector(stepNombre, campoNombre, typoModelo)}
                     width="100%"
                     height="60px"
                     display="flex"
@@ -612,6 +756,25 @@ const DetailsForm = () => {
                                             }
                                         </Text>
 
+                                        {/* Helper function to get model type */}
+                                        {(() => {
+                                            // Handle case where field only has selector-de-modelo without tipo
+                                            if (!campo.tipo && campo["selector-de-modelo"]) {
+                                                return (
+                                                    <Box width="100%" display="flex" justifyContent="center">
+                                                        <ModelSelectorButton
+                                                            stepNombre={step.nombre}
+                                                            campoNombre={campo.nombre}
+                                                            typoModelo={getModelType(campo)}
+                                                            isSelected={formValues[`${step.nombre}_${campo.nombre}_modelo`] !== undefined}
+                                                        />
+                                                    </Box>
+                                                );
+                                            }
+
+                                            return null;
+                                        })()}
+
                                         {campo.tipo === "escoger" && campo.opciones && campo.opciones.length > 0 && (
                                             <Box width="100%" display="flex" justifyContent="center">
                                                 <VStack spacing={4} width="100%">
@@ -661,11 +824,12 @@ const DetailsForm = () => {
                                                     </SimpleGrid>
 
                                                     {/* Botón de selector de modelo (si está habilitado) */}
-                                                    {campo["selector-de-modelo"] === true && (
+                                                    {campo["selector-de-modelo"] && (
                                                         <Box width="100%" display="flex" justifyContent="center">
                                                             <ModelSelectorButton
                                                                 stepNombre={step.nombre}
                                                                 campoNombre={campo.nombre}
+                                                                typoModelo={getModelType(campo)}
                                                                 isSelected={formValues[`${step.nombre}_${campo.nombre}_modelo`] !== undefined}
                                                             />
                                                         </Box>
@@ -799,11 +963,12 @@ const DetailsForm = () => {
                                                     </SimpleGrid>
 
                                                     {/* Botón de selector de modelo (si está habilitado) */}
-                                                    {campo["selector-de-modelo"] === true && (
+                                                    {campo["selector-de-modelo"] && (
                                                         <Box width="100%" display="flex" justifyContent="center">
                                                             <ModelSelectorButton
                                                                 stepNombre={step.nombre}
                                                                 campoNombre={campo.nombre}
+                                                                typoModelo={getModelType(campo)}
                                                                 isSelected={formValues[`${step.nombre}_${campo.nombre}_modelo`] !== undefined}
                                                             />
                                                         </Box>
@@ -838,11 +1003,18 @@ const DetailsForm = () => {
                                 ))}
 
 
-                                {!isStepComplete(index) && (
-                                    <Text color="red.500" fontSize="sm" textAlign="center" mt={2}>
-                                        Por favor, complete todos los campos de este paso para continuar
-                                    </Text>
-                                )}
+                                {(() => {
+                                    const errors = getStepValidationErrors(index);
+                                    return errors.length > 0 && (
+                                        <VStack spacing={1} mt={2}>
+                                            {errors.map((error, errorIndex) => (
+                                                <Text key={errorIndex} color="red.500" fontSize="sm" textAlign="center">
+                                                    {error}
+                                                </Text>
+                                            ))}
+                                        </VStack>
+                                    );
+                                })()}
                             </VStack>
                         </Box>
                     ))}
@@ -994,11 +1166,13 @@ const DetailsForm = () => {
                     const selectedModel = {
                         modelIndex: modelData.selectedCollar,
                         colors: modelData.colors,
-                        modelName: `Modelo ${modelData.selectedCollar + 1}`
+                        modelName: `Modelo ${modelData.selectedCollar + 1}`,
+                        modelType: currentModelType
                     };
                     handleModelSelection(selectedModel);
                 }}
                 initialModelData={currentModelField ? formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_modelo`] : null}
+                modelType={currentModelType}
             />
         </>
     );

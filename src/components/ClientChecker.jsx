@@ -12,6 +12,8 @@ const ClientChecker = () => {
     const [cc, setCC] = useState("");
     const [error, setError] = useState("");
 
+    state.justCheckedOut = false;
+
     const checkCliente = async () => {
         if (!cc) {
             setError("Ingrese una cédula válida.");
