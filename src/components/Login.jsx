@@ -16,7 +16,6 @@ const LoginForm = () => {
         setEMessage(""); // Reset error message before login attempt
 
         try {
-            console.log(values);
             const res = await axiosInstance.post("/login", {
                 email: values.email,
                 password: values.password,
@@ -25,7 +24,6 @@ const LoginForm = () => {
             const userData = res.data; // Get user data from response
             state.currentOrder.user_id = userData.id;
 
-            console.log("current_order",state.currentOrder);
             state.userEmail = values.email;
             state.user = userData;
             state.isUnLogged=false;
@@ -35,7 +33,6 @@ const LoginForm = () => {
             navigate("/control-panel");
             localStorage.setItem("token", userData.access); // Store token in localStorage
         } catch (err) {
-            console.error("Login failed:", err.response ? err.response.data : err.message);
             setEMessage("Email o contraseña no son válidos.");
         } finally {
             setSubmitting(false);

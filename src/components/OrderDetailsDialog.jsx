@@ -22,6 +22,7 @@ import {
     DialogTrigger,
     DialogCloseTrigger
 } from "@/components/ui/dialog";
+import log from "eslint-plugin-react/lib/util/log.js";
 
 const OrderDetailsDialog = ({ details, productName }) => {
     const [isModelViewerOpen, setIsModelViewerOpen] = useState(false);
@@ -35,9 +36,22 @@ const OrderDetailsDialog = ({ details, productName }) => {
 
     // Función para formatear las claves del JSON
     const formatKey = (key) => {
+        // Mapeo personalizado para campos específicos
+        const fieldMappings = {
+            'personName': 'Nombre de la persona',
+            'personRole': 'Cargo de la persona'
+        };
+
         return key
             .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map(word => {
+                // Si la palabra está en el mapeo personalizado, usar ese valor
+                if (fieldMappings[word]) {
+                    return fieldMappings[word];
+                }
+                // Si no, aplicar la capitalización normal
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            })
             .join(' ');
     };
 
@@ -87,9 +101,23 @@ const OrderDetailsDialog = ({ details, productName }) => {
             if (key.endsWith('_modelo') && typeof value === 'object' && value !== null) {
                 const fieldName = key.replace('_modelo', '');
                 const formattedFieldName = formatKey(fieldName);
+
+                // Buscar información adicional del mismo campo
+                const imageData = details[`${fieldName}_imageData`];
+                const personName = details[`${fieldName}_personName`];
+                const personRole = details[`${fieldName}_personRole`];
+
+                // Crear objeto completo con toda la información
+                const completeModelData = {
+                    ...value,
+                    imageData: imageData,
+                    personName: personName,
+                    personRole: personRole
+                };
+
                 models.push({
                     fieldName: formattedFieldName,
-                    modelData: value,
+                    modelData: completeModelData,
                     originalKey: key
                 });
             }
@@ -164,7 +192,7 @@ const OrderDetailsDialog = ({ details, productName }) => {
     );
 
     // Componente para mostrar un modelo seleccionado
-    const ModelBox = ({ fieldName, modelData }) => (
+    const ModelBox = ({ fieldName, modelData, originalKey }) => (
         <Box
             p={3}
             m={1}
@@ -253,7 +281,7 @@ const OrderDetailsDialog = ({ details, productName }) => {
                                         <>
                                             <Box>
                                                 <Badge
-                                                    bg="green.600"
+                                                    bg="blackAlpha.800"
                                                     color="white"
                                                     fontSize="md"
                                                     p={2}
@@ -294,7 +322,7 @@ const OrderDetailsDialog = ({ details, productName }) => {
                                                 </Badge>
                                                 <SimpleGrid columns={2} spacingX={4} spacingY={3}>
                                                     {selectedTypes.map((type, index) => (
-                                                        <DetailBox 
+                                                        <DetailBox
                                                             key={index}
                                                             label={type.fieldName}
                                                             value={type.value}
@@ -372,8 +400,8 @@ const OrderDetailsDialog = ({ details, productName }) => {
                                         <SimpleGrid columns={2} spacingX={4} spacingY={3}>
                                             <DetailBox label="Tipo de Bolsillo Lateral" value={details["bolsillos_lateral_main"] + " --> " + details["bolsillos_lateral_sub"]} />
                                             <br />
-                                            <DetailBox label="Parche trasero" value={details["bolsillos_parche trasero"] ? details["bolsillos_parche trasero"] : "Ninguno"} />
-                                            <DetailBox label="Parche rodilla" value={details["bolsillos_parche rodilla"] ? details["bolsillos_parche rodilla"] : "Ninguno"} />
+                                            <DetailBox label="Parche trasero" value={details["bolsillos_parche trasero_main"] ? (details["bolsillos_parche trasero_main"] + " --> " + details["bolsillos_parche trasero_sub"]) : "Ninguno"} />
+                                            <DetailBox label="Parche rodilla" value={details["bolsillos_parche rodilla_main"] ? (details["bolsillos_parche rodilla_main"] + " --> " + details["bolsillos_parche rodilla_sub"]) : "Ninguno"} />
                                         </SimpleGrid>
                                     </Box>
                                     <Box borderBottomWidth="1px" borderColor="blue.200" my={2} />
@@ -413,6 +441,7 @@ const OrderDetailsDialog = ({ details, productName }) => {
                 title="Visualizar Modelo Seleccionado"
                 showModelButtons={false}
                 modelType={currentModelData?.modelType}
+                showUploadedImage={true} // Mostrar imagen subida si existe
             />
         </>
     );

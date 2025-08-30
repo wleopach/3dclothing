@@ -12,11 +12,10 @@ const types = {
         modelo1, modelo7, modelo2, modelo4,
     ],
     blusa_parche_latral: [
-        modelo15, modelo18, modelo19, modelo20,
         modelo17
     ],
     blusa_parche_trasero: [
-        modelo14, modelo16
+        modelo14, modelo16, modelo15, modelo18, modelo19, modelo20,
     ],
     pantalon_bolsillo_delantero: [
         pantalon1

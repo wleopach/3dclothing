@@ -29,6 +29,7 @@
     "react-router-dom": "^7.4.0",
     "three": "^0.172.0",
     "valtio": "^2.1.2",
+    "yet-another-react-lightbox": "^3.25.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {

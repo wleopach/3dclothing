@@ -16,10 +16,16 @@ const ModelSelectorDialog = ({
     initialModelData = null,
     title = "Seleccionar Modelo",
     showModelButtons = true,
-    modelType = null
+    modelType = null,
+    showUploadedImage = false
 }) => {
     return (
-        <DialogRoot open={isOpen} onOpenChange={onClose}>
+        <DialogRoot open={isOpen} onOpenChange={(open) => {
+            // Solo cerrar cuando realmente se quiera cerrar, no cuando se abra el lightbox
+            if (!open) {
+                onClose();
+            }
+        }}>
             <DialogContent
                 width="100vw"
                 height="100vh"
@@ -59,6 +65,7 @@ const ModelSelectorDialog = ({
                             initialModelData={initialModelData}
                             showModelButtons={showModelButtons}
                             typoModelo={modelType}
+                            showUploadedImage={showUploadedImage}
                         />
                     </Box>
                 </DialogBody>

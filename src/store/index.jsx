@@ -38,7 +38,6 @@ function loadStateFromLocalStorage() {
 }
 
 // Cargar estado inicial desde localStorage
-const savedState = loadStateFromLocalStorage();
 const defaultOrder = {
     "product_id": '',
     "tela_id": '',
@@ -56,38 +55,41 @@ const defaultOrder = {
     "details": {},
 }
 
-const defaultState = {
-    cc: "",
-    registered: true,
-    intro: true,
-    showCart: false,
-    showPanel: false,
-    color:'#EFBD48',
-    colorGreen:'#008000',
-    isLogoTexture: true,
-    isFullTexture: false,
-    logoDecal:'./threejs.png',
-    fullDecal:'./threejs.png',
-    file_3d: 'shirt_v.glb',
-    showForm: true,
-    isUnLogged: true,
-    showProductForm: false,
-    pickColor: false,
-    user : {},
-    userEmail : '',
-    clientData : {},
-    colorsData: [],
-    modelColorsData: [], // Colores para el selector de modelo
-    currentOrder: defaultOrder,
-    pickSize: false,
-    cart: [],
-    justCheckedOut: false,
+function getDefaultState() {
+    const savedState = loadStateFromLocalStorage();
+    return {
+        cc: "",
+        registered: true,
+        intro: true,
+        showCart: false,
+        showPanel: false,
+        color:'#EFBD48',
+        colorGreen:'#008000',
+        isLogoTexture: true,
+        isFullTexture: false,
+        logoDecal:'./threejs.png',
+        fullDecal:'./threejs.png',
+        file_3d: 'shirt_v.glb',
+        showForm: savedState?.showForm ?? true,
+        isUnLogged: savedState?.isUnLogged ?? true,
+        showProductForm: savedState?.showProductForm ?? false,
+        pickColor: savedState?.pickColor ?? false,
+        user : savedState?.user ?? {},
+        userEmail : savedState?.userEmail ?? '',
+        clientData : savedState?.clientData ?? {},
+        colorsData: savedState?.colorsData ?? [],
+        modelColorsData: savedState?.modelColorsData ?? [], // Colores para el selector de modelo
+        currentOrder: savedState?.currentOrder ?? defaultOrder,
+        pickSize: savedState?.pickSize ?? false,
+        cart: savedState?.cart ?? [],
+        justCheckedOut: savedState?.justCheckedOut ?? false,
+    };
 }
 
 let state;
 
 function setDefaultState() {
-    const copy = JSON.parse(JSON.stringify(defaultState));
+    const copy = JSON.parse(JSON.stringify(getDefaultState()));
     state = proxy(copy);
 }
 setDefaultState();
@@ -106,8 +108,34 @@ function clearSavedState() {
     }
 }
 
+function hasSavedState() {
+    return localStorage.getItem('state') !== null;
+}
+
+function getSavedState() {
+    return JSON.parse(localStorage.getItem('state'));
+}
+
 function addToCart() {
-    state.cart.push({ ...state.currentOrder });
+    // Extraer UUIDs de imágenes de los detalles
+    const imageIds = [];
+    
+    if (state.currentOrder.details) {
+        // Recorrer todos los campos de detalles para encontrar imágenes
+        Object.entries(state.currentOrder.details).forEach(([key, value]) => {
+            if (key.endsWith('_imageData') && value && value.id) {
+                imageIds.push(value.id);
+            }
+        });
+    }
+    
+    // Crear el producto con la información de imágenes
+    const productToAdd = {
+        ...state.currentOrder,
+        imageIds: imageIds // Agregar array de UUIDs de imágenes
+    };
+    
+    state.cart.push(productToAdd);
     saveCurrentState(); // Guardar después de agregar al carrito
 }
 
@@ -124,4 +152,4 @@ function removeFromCart(index) {
     }
 }
 
-export {state, addToCart, checkout, removeFromCart, saveCurrentState, clearSavedState, setDefaultState};
+export {state, addToCart, checkout, removeFromCart, saveCurrentState, clearSavedState, setDefaultState, hasSavedState, getSavedState};

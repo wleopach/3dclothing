@@ -75,8 +75,14 @@ const Cart = () => {
                 ...order
             }));
 
+            // Modificar productos para incluir sus imágenes individualmente
+            const productsWithImages = products.map(product => ({
+                ...product,
+                image_ids: product.imageIds || [] // Cada producto con sus propias imágenes
+            }));
+
             const cart = {
-                products: products,
+                products: productsWithImages,
                 cortador_id: selectedCortador.id,
                 cortadorName: selectedCortador.name,
                 client_cc: snap.clientData.cc

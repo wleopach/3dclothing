@@ -1,21 +1,38 @@
-import './ClothingModelSelector.css'
-import { Box, Text, Flex, VStack, Center, Button } from "@chakra-ui/react"
+import './ClothingModelSelector.css';
+import { Box, Text, Flex, VStack, Center, Button, Input } from "@chakra-ui/react";
 import React from 'react'
-import { modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
+import { useEffect, useCallback, useState } from 'react';
+import {
+    modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
     modelo18, modelo8, modelo9, pantalon6, modelo20, pantalon11,
     modelo12, modelo1, modelo7, modelo19, modelo2, pantalon10,
     pantalon9, pantalon1, pantalon7, modelo16, modelo14, pantalon4,
-    modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3 }
+    modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3
+}
     from './collars/Collars';
 import { useSnapshot } from "valtio";
 import { state } from "../../store";
 import axiosInstance from "../../axiosConfig";
 import types from "./collars/TypeMap";
 
-function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, showModelButtons = true }) {
+function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, showModelButtons = true, showUploadedImage = false }) {
     const snap = useSnapshot(state);
     const fontSize = "sm";
     const colorBoxSize = "50px";
+    const fileInputRef = React.useRef(null);
+
+    // Funciones para mostrar notificaciones
+    const showSuccessNotification = (message) => {
+        setSuccessMessage(message);
+        setShowSuccessAlert(true);
+        setShowErrorAlert(false);
+    };
+
+    const showErrorNotification = (message) => {
+        setErrorMessage(message);
+        setShowErrorAlert(true);
+        setShowSuccessAlert(false);
+    };
 
     // Array of all models for easy access
     let modelos = [
@@ -27,7 +44,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     ];
 
     if (typoModelo) {
-        modelos = types[typoModelo]
+        modelos = types[typoModelo];
     }
 
     // Get all unique color part IDs from all models
@@ -58,6 +75,140 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     const [selectedPart, setSelectedPart] = React.useState(null);
     const [selectedCollar, setSelectedCollar] = React.useState(0); // Changed to index-based
     const [loading, setLoading] = React.useState(false);
+    const [selectedModelPhoto, setSelectedModelPhoto] = React.useState(null);
+    const [photoFileName, setPhotoFileName] = React.useState('');
+    const [personName, setPersonName] = React.useState('');
+    const [personRole, setPersonRole] = React.useState('');
+    const [lightboxOpen, setLightboxOpen] = React.useState(false);
+    const [lightboxIndex, setLightboxIndex] = React.useState(0);
+    const lightboxRef = React.useRef(null);
+
+    // Estados para notificaciones
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    // Función para cerrar el lightbox (definida ANTES de los useEffect)
+    const closeLightbox = useCallback(() => {
+        console.log('=== FUNCIÓN closeLightbox EJECUTADA ===');
+        console.log('Estado actual lightboxOpen:', lightboxOpen);
+        console.log('Estado actual lightboxIndex:', lightboxIndex);
+
+        setLightboxOpen(false);
+        console.log('setLightboxOpen(false) ejecutado');
+
+        // Restaurar el scroll del body
+        document.body.style.overflow = 'auto';
+        console.log('Scroll del body restaurado');
+
+        console.log('=== FIN FUNCIÓN closeLightbox ===');
+    }, [lightboxOpen, lightboxIndex]);
+
+    // Función para abrir el lightbox de la imagen
+    const openLightbox = useCallback((index = 0, event) => {
+        // Prevenir que el evento se propague al diálogo padre
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        // Verificar que hay una imagen válida antes de abrir
+        const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                             (selectedModelPhoto && selectedModelPhoto instanceof File);
+
+        if (hasValidImage) {
+            console.log('Abriendo lightbox con imagen válida');
+            setLightboxIndex(index);
+            setLightboxOpen(true);
+        } else {
+            console.warn('No hay imagen válida para mostrar en el lightbox');
+        }
+    }, [showUploadedImage, initialModelData, selectedModelPhoto]);
+
+    // Función de cierre alternativa para debugging
+    const handleCloseLightbox = () => {
+        console.log('handleCloseLightbox llamado');
+        closeLightbox();
+    };
+
+    // Monitorear cambios en el estado del lightbox
+    useEffect(() => {
+        console.log('=== useEffect: Estado del lightbox cambió ===');
+        console.log('lightboxOpen:', lightboxOpen);
+        console.log('lightboxIndex:', lightboxIndex);
+        console.log('=== FIN useEffect ===');
+    }, [lightboxOpen, lightboxIndex]);
+
+    // Prevenir que el estado se resetee accidentalmente
+    useEffect(() => {
+        if (lightboxOpen) {
+            console.log('Lightbox abierto, previniendo cierre automático');
+        }
+    }, [lightboxOpen]);
+
+    // Prevenir que el lightbox interfiera con el diálogo padre
+    useEffect(() => {
+        // Cuando el lightbox se abre, asegurar que no interfiera con el diálogo
+        if (lightboxOpen) {
+            // Agregar clase al body para prevenir scroll del diálogo
+            document.body.style.overflow = 'hidden';
+
+            return () => {
+                // Restaurar cuando se cierre
+                document.body.style.overflow = 'auto';
+            };
+        }
+    }, [lightboxOpen]);
+
+    // Prevenir que el lightbox se cierre cuando cambien las props
+    useEffect(() => {
+        // Si el lightbox está abierto, mantenerlo abierto
+        if (lightboxOpen) {
+            console.log('Props cambiaron pero lightbox sigue abierto');
+        }
+    }, [initialModelData, showUploadedImage, selectedModelPhoto]);
+
+    // Manejar eventos de teclado globales para el lightbox
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (lightboxOpen && event.key === 'Escape') {
+                console.log('ESC global detectado, cerrando lightbox');
+                closeLightbox();
+            }
+        };
+
+        if (lightboxOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+            console.log('Event listener de teclado agregado');
+
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+                console.log('Event listener de teclado removido');
+            };
+        }
+    }, [lightboxOpen, closeLightbox]);
+
+    // Efecto para ocultar la alerta de éxito después de 3 segundos
+    useEffect(() => {
+        if (showSuccessAlert) {
+            const timer = setTimeout(() => {
+                setShowSuccessAlert(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccessAlert]);
+
+    // Efecto para ocultar la alerta de error después de 5 segundos
+    useEffect(() => {
+        if (showErrorAlert) {
+            const timer = setTimeout(() => {
+                setShowErrorAlert(false);
+                setErrorMessage("");
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [showErrorAlert]);
 
     // Convert RGB tuple string "(251,251,251)" to CSS color string
     const getRgbColor = (colorStr) => {
@@ -82,19 +233,80 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
         }
     };
 
+    // Validar archivo de imagen
+    const validateImageFile = (file) => {
+        // Validar tipo de archivo
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showErrorNotification("Por favor selecciona una imagen (JPG, PNG, GIF, WEBP)");
+            return false;
+        }
+
+        // Validar tamaño (10MB = 10 * 1024 * 1024 bytes)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showErrorNotification("La imagen debe tener un tamaño máximo de 10MB");
+            return false;
+        }
+
+        return true;
+    };
+
+    // Manejar carga de archivo
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (file && validateImageFile(file)) {
+            setSelectedModelPhoto(file);
+            setPhotoFileName(file.name);
+            showSuccessNotification(`Imagen cargada exitosamente: ${file.name}`);
+        }
+        // Limpiar el input para permitir cargar el mismo archivo nuevamente
+        event.target.value = '';
+    };
+
+    // Función para abrir el selector de archivos
+    const openFileSelector = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+    };
+
+    const showLogoRequired = () => {
+        const currentModel = getCurrentModel();
+        return currentModel === modelo17;
+    }
+
+    // Verificar si se puede confirmar la selección
+    const canConfirmSelection = () => {
+        const currentModel = getCurrentModel();
+        if (currentModel === modelo17) {
+            // Para modelo17, la foto es obligatoria
+            if (!selectedModelPhoto) {
+                return false;
+            }
+
+            // Si se ha ingresado nombre o cargo, ambos deben estar completos
+            // if ((personName && !personRole) || (!personName && personRole)) {
+            //     return false;
+            // }
+
+            return true;
+        }
+        return true;
+    };
+
     // Cargar colores del stock si no están en el store
     React.useEffect(() => {
         const fetchModelColors = async () => {
-            if (!snap.currentOrder.stock) return;
+            // if (!snap.currentOrder.stock) return;
 
             // Si ya tenemos colores en el store y el stock no ha cambiado, no hacer la llamada
-            if (snap.modelColorsData.length > 0) return;
+            // if (snap.modelColorsData.length > 0) return;
 
             setLoading(true);
             try {
-                const response = await axiosInstance.get("/telas/by_stock/", {
-                    params: { stock: snap.currentOrder.stock }
-                });
+                const response = await axiosInstance.get("/telas/by_parameter/");
                 const telaData = response.data;
                 if (Array.isArray(telaData)) {
                     const colorOptions = telaData.map(tela => ({
@@ -132,6 +344,20 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                     ...initialModelData.colors
                 }));
             }
+
+            // Establecer la foto del modelo si existe
+            if (initialModelData.selectedModelPhoto) {
+                setSelectedModelPhoto(initialModelData.selectedModelPhoto);
+                setPhotoFileName(initialModelData.photoFileName || '');
+            }
+
+            // Establecer los campos de texto del modelo17 si existen
+            if (initialModelData.personName) {
+                setPersonName(initialModelData.personName);
+            }
+            if (initialModelData.personRole) {
+                setPersonRole(initialModelData.personRole);
+            }
         }
     }, [initialModelData]);
 
@@ -139,7 +365,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     React.useEffect(() => {
         const currentColorParts = getCurrentColorParts();
         const colorPartKeys = Object.keys(currentColorParts);
-        
+
         // Si solo hay una parte modificable, seleccionarla automáticamente
         if (colorPartKeys.length === 1 && !selectedPart) {
             setSelectedPart(colorPartKeys[0]);
@@ -438,8 +664,104 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     const currentModel = getCurrentModel();
     const currentColorParts = getCurrentColorParts();
 
+    const handleConfirmSelection = async () => {
+        if (!canConfirmSelection()) {
+            showErrorNotification("Debes cargar una foto para este modelo antes de confirmar");
+            return;
+        }
+
+        // Si hay una foto seleccionada, enviarla al servidor primero
+        let imageData = null;
+        if (selectedModelPhoto) {
+            try {
+                setLoading(true);
+
+                const formData = new FormData();
+                formData.append('image', selectedModelPhoto);
+
+                const response = await axiosInstance.post('/images/upload/', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                if (response.data.success) {
+                    imageData = response.data.image;
+                    showSuccessNotification(`Imagen procesada exitosamente. Tamaño: ${response.data.file_info.size_mb.toFixed(2)}MB`);
+                } else {
+                    showErrorNotification("Error procesando la imagen");
+                    return;
+                }
+            } catch (error) {
+                console.error('Error subiendo imagen:', error);
+                showErrorNotification("Error subiendo la imagen al servidor");
+                return;
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        const currentModel = getCurrentModel();
+        onModelSelect({
+            selectedCollar: selectedCollar,
+            colors: colors,
+            model: currentModel,
+            selectedModelPhoto: selectedModelPhoto,
+            photoFileName: photoFileName,
+            personName: personName,
+            personRole: personRole,
+            imageData: imageData // Incluir los datos de la imagen procesada
+        });
+    };
+
     return (
-        <VStack spacing={2} align="stretch" p={4}>
+        <>
+            {/* Alertas flotantes con posicionamiento absoluto */}
+            {showSuccessAlert && (
+                <Box
+                    position="fixed"
+                    top="20px"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    zIndex="9999"
+                    bg="green.500"
+                    color="white"
+                    px={6}
+                    py={4}
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    maxW="400px"
+                    textAlign="center"
+                >
+                    <Text fontWeight="bold" fontSize="md">
+                        ✅ {successMessage}
+                    </Text>
+                </Box>
+            )}
+
+            {showErrorAlert && (
+                <Box
+                    position="fixed"
+                    top="20px"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    zIndex="9999"
+                    bg="red.500"
+                    color="white"
+                    px={6}
+                    py={4}
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    maxW="400px"
+                    textAlign="center"
+                >
+                    <Text fontWeight="bold" fontSize="md">
+                        ❌ {errorMessage}
+                    </Text>
+                </Box>
+            )}
+
+            <VStack spacing={2} align="stretch" p={4}>
             {/* Collar Selection */}
             {showModelButtons && (
                 <Center w="100%" mb={2}>
@@ -481,6 +803,228 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                     </Box>
                 </Center>
             )}
+
+            {/* Foto requerida para este Modelo */}
+            {(showLogoRequired() && onModelSelect) || (showUploadedImage && initialModelData?.imageData) ? (
+                <Center w="100%" mb={4}>
+                    <VStack spacing={3} p={4} border="2px dashed" borderColor={selectedModelPhoto ? "green.400" : "orange.400"} borderRadius="md" bg="rgba(0,0,0,0.1)">
+                        <Text color="white" fontSize="md" fontWeight="bold" textAlign="center">
+                            {showUploadedImage && initialModelData?.imageData ? "📸 Foto para el Modelo" : "📸 Foto Requerida para este Modelo"}
+                        </Text>
+
+                        {!selectedModelPhoto && !(showUploadedImage && initialModelData?.imageData) ? (
+                            <Box>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    display="none"
+                                    id="photo-upload"
+                                    ref={fileInputRef}
+                                />
+                                <Button
+                                    colorScheme="blue"
+                                    size="md"
+                                    cursor="pointer"
+                                    _hover={{ bg: "blue.600" }}
+                                    onClick={openFileSelector}
+                                >
+                                    📁 Seleccionar Foto
+                                </Button>
+                            </Box>
+                        ) : (
+                            <VStack spacing={2}>
+                                <Text color="green.400" fontSize="sm" fontWeight="bold">
+                                    {showUploadedImage && initialModelData?.imageData ? "" : `✅ Foto cargada: ${photoFileName}`}
+                                </Text>
+
+                                {/* Vista previa de la imagen */}
+                                <Box
+                                    position="relative"
+                                    width="100%"
+                                    height="150px"
+                                    borderRadius="md"
+                                    overflow="hidden"
+                                    border="2px solid"
+                                    borderColor="green.400"
+                                    bg="gray.800"
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    cursor={(() => {
+                                        const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                                                           (selectedModelPhoto && selectedModelPhoto instanceof File);
+                                        return hasValidImage ? "pointer" : "default";
+                                    })()}
+                                    onClick={(event) => openLightbox(0, event)}
+                                    _hover={(() => {
+                                        const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                                                           (selectedModelPhoto && selectedModelPhoto instanceof File);
+                                        return hasValidImage ? {
+                                            borderColor: "blue.400",
+                                            transform: "scale(1.05)",
+                                            transition: "all 0.2s"
+                                        } : {};
+                                    })()}
+                                    title={(() => {
+                                        const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                                                           (selectedModelPhoto && selectedModelPhoto instanceof File);
+                                        return hasValidImage ? "Click para ver en pantalla completa" : "No hay imagen para mostrar";
+                                    })()}
+                                >
+                                    {showUploadedImage && initialModelData?.imageData ? (
+                                        <img
+                                            src={`${axiosInstance.defaults.baseURL}/images/${initialModelData.imageData.id}/?extension=${initialModelData.imageData.extension}`}
+                                            alt="Foto del producto"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                    ) : selectedModelPhoto && selectedModelPhoto instanceof File ? (
+                                        <img
+                                            src={URL.createObjectURL(selectedModelPhoto)}
+                                            alt="Vista previa"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                    ) : (
+                                        <Text color="gray.400" fontSize="sm" textAlign="center">
+                                            Sin imagen
+                                        </Text>
+                                    )}
+
+                                    {/* Ícono de zoom - solo mostrar si hay imagen válida */}
+                                    {(() => {
+                                        const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                                                           (selectedModelPhoto && selectedModelPhoto instanceof File);
+                                        return hasValidImage ? (
+                                            <Box
+                                                position="absolute"
+                                                top="5px"
+                                                right="5px"
+                                                bg="rgba(0,0,0,0.7)"
+                                                color="white"
+                                                borderRadius="full"
+                                                width="24px"
+                                                height="24px"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                fontSize="12px"
+                                                fontWeight="bold"
+                                            >
+                                                🔍
+                                            </Box>
+                                        ) : null;
+                                    })()}
+                                </Box>
+
+                                {/* Texto indicativo - solo mostrar si hay imagen válida */}
+                                {(() => {
+                                    const hasValidImage = (showUploadedImage && initialModelData?.imageData) ||
+                                                       (selectedModelPhoto && selectedModelPhoto instanceof File);
+                                    return hasValidImage ? (
+                                        <Text color="blue.300" fontSize="xs" textAlign="center" fontStyle="italic">
+                                            💡 Click en la imagen para ver en pantalla completa
+                                        </Text>
+                                    ) : null;
+                                })()}
+
+                                {!showUploadedImage && (
+                                    <VStack spacing={2}>
+                                        <Button
+                                            size="md"
+                                            colorScheme="red"
+                                            bg="red.500"
+                                            onClick={() => {
+                                                setSelectedModelPhoto(null);
+                                                setPhotoFileName('');
+                                            }}
+                                            _hover={{ bg: "red.600" }}
+                                        >
+                                            🗑️ Eliminar Foto
+                                        </Button>
+                                    </VStack>
+                                )}
+                            </VStack>
+                        )}
+                    </VStack>
+                </Center>
+            ) : ''}
+
+            {/* Campos de texto opcionales para modelo17 */}
+            {(showLogoRequired() && onModelSelect) || (showUploadedImage && (initialModelData?.personName || initialModelData?.personRole)) ? (
+                <Center w="100%" mb={4}>
+                    <VStack
+                        spacing={3}
+                        p={4}
+                        border="2px dashed"
+                        borderColor="blue.400"
+                        borderRadius="md"
+                        bg="rgba(0,0,0,0.1)"
+                        width={["100%", "100%", "80%", "60%"]}
+                        maxW="500px"
+                    >
+                        <Text color="white" fontSize="md" fontWeight="bold" textAlign="center">
+                            📝 Información Adicional
+                        </Text>
+                        <Text color="white" fontSize="sm" textAlign="center">
+                            {showUploadedImage ? "Datos para el Bordado" : "Puede agregar el nombre y cargo para el bordado"}
+                        </Text>
+
+                        <VStack spacing={3} width="100%">
+                            <Box width="100%">
+                                <Text color="white" fontSize="sm" mb={2}>
+                                    Nombre de la persona:
+                                </Text>
+                                <Input
+                                    placeholder="Ingrese el nombre de la persona"
+                                    value={showUploadedImage ? (initialModelData?.personName || '') : (personName || '')}
+                                    onChange={showUploadedImage ? undefined : (e) => setPersonName(e.target.value)}
+                                    bg="gray.800"
+                                    borderColor="gray.600"
+                                    color="white"
+                                    isReadOnly={showUploadedImage}
+                                    _hover={{
+                                        borderColor: showUploadedImage ? "gray.600" : "blue.400"
+                                    }}
+                                    _focus={{
+                                        borderColor: showUploadedImage ? "gray.600" : "blue.400",
+                                        boxShadow: showUploadedImage ? "none" : "0 0 0 1px #63B3ED"
+                                    }}
+                                />
+                            </Box>
+
+                            <Box width="100%">
+                                <Text color="white" fontSize="sm" mb={2}>
+                                    Cargo:
+                                </Text>
+                                <Input
+                                    placeholder="Ingrese el cargo de la persona"
+                                    value={showUploadedImage ? (initialModelData?.personRole || '') : (personRole || '')}
+                                    onChange={showUploadedImage ? undefined : (e) => setPersonRole(e.target.value)}
+                                    bg="gray.800"
+                                    borderColor="gray.600"
+                                    color="white"
+                                    isReadOnly={showUploadedImage}
+                                    _hover={{
+                                        borderColor: showUploadedImage ? "gray.600" : "blue.400"
+                                    }}
+                                    _focus={{
+                                        borderColor: showUploadedImage ? "gray.600" : "blue.400",
+                                        boxShadow: showUploadedImage ? "none" : "0 0 0 1px #63B3ED"
+                                    }}
+                                />
+                            </Box>
+                        </VStack>
+                    </VStack>
+                </Center>
+            ) : null}
 
             <Center w="100%" mb={2}>
                 <Box
@@ -536,7 +1080,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                                     />
                                 </React.Fragment>
                             ) : (
-                                'Click on a color part to select it'
+                                'De click en una parte para seleccionarla'
                             )}
                         </Text>
                     </Center>
@@ -655,30 +1199,145 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
             )}
 
             {/* Botón de Confirmación de Selección de Modelo */}
+            {!canConfirmSelection() ?
+                <Center w="100%" mt={4}>
+                    <Text color="red.500" fontSize={fontSize} textAlign="center">
+                        Foto requerida
+                    </Text>
+                </Center>
+                : ''}
             {onModelSelect && (
                 <Center w="100%" mt={4}>
                     <Button
                         size="lg"
-                        bg="green.500"
+                        bg={canConfirmSelection() ? "green.500" : "gray.500"}
                         color="white"
-                        _hover={{ bg: "green.600" }}
-                        _active={{ bg: "green.700" }}
-                        onClick={() => {
-                            const currentModel = getCurrentModel();
-                            onModelSelect({
-                                selectedCollar: selectedCollar,
-                                colors: colors,
-                                model: currentModel
-                            });
-                        }}
+                        _hover={{ bg: canConfirmSelection() ? "green.600" : "gray.600" }}
+                        _active={{ bg: canConfirmSelection() ? "green.700" : "gray.700" }}
+                        onClick={handleConfirmSelection}
                         px={8}
                         py={3}
+                        disabled={!canConfirmSelection()}
+                        title={!canConfirmSelection() ? "Debes cargar una foto para el modelo 17 antes de confirmar" : ""}
                     >
-                        Confirmar Selección del Modelo {selectedCollar + 1}
+                        {canConfirmSelection()
+                            ? `Confirmar Selección del Modelo ${selectedCollar + 1}`
+                            : `Foto requerida para Modelo ${selectedCollar + 1}`
+                        }
                     </Button>
                 </Center>
             )}
+
+            {/* Los botones de respaldo ya no son necesarios con el modal personalizado */}
+
+            {/* Modal personalizado simple para previsualización en pantalla completa */}
+            {lightboxOpen && (() => {
+                const slides = [];
+
+                // Agregar imagen del modelo si existe
+                if (showUploadedImage && initialModelData?.imageData) {
+                    slides.push({
+                        src: `${axiosInstance.defaults.baseURL}/images/${initialModelData.imageData.id}/?extension=${initialModelData.imageData.extension}`,
+                        alt: "Foto del producto"
+                    });
+                } else if (selectedModelPhoto && selectedModelPhoto instanceof File) {
+                    try {
+                        slides.push({
+                            src: URL.createObjectURL(selectedModelPhoto),
+                            alt: "Vista previa"
+                        });
+                    } catch (error) {
+                        console.warn('Error creating object URL:', error);
+                        // Si falla, no agregar la imagen
+                    }
+                }
+
+                // Solo renderizar si hay slides
+                if (slides.length === 0) {
+                    return null;
+                }
+
+                return (
+                    <Box
+                        position="fixed"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="rgba(0,0,0,0.95)"
+                        zIndex={9999}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        onClick={(e) => {
+                            // Cerrar al hacer click en el fondo
+                            if (e.target === e.currentTarget) {
+                                closeLightbox();
+                            }
+                        }}
+                    >
+                        {/* Botón de cierre */}
+                        <Box
+                            position="absolute"
+                            top="20px"
+                            right="20px"
+                            bg="red.500"
+                            color="white"
+                            borderRadius="full"
+                            width="60px"
+                            height="60px"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            cursor="pointer"
+                            onClick={closeLightbox}
+                            _hover={{
+                                bg: "red.600",
+                                transform: "scale(1.1)"
+                            }}
+                            fontSize="28px"
+                            fontWeight="bold"
+                            boxShadow="lg"
+                            border="3px solid white"
+                            zIndex={10000}
+                        >
+                            ✕
+                        </Box>
+
+                        {/* Imagen */}
+                        <Box
+                            maxW="90vw"
+                            maxH="90vh"
+                            position="relative"
+                        >
+                            <img
+                                src={slides[0].src}
+                                alt={slides[0].alt}
+                                style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        </Box>
+
+                        {/* Texto de ayuda */}
+                        <Text
+                            position="absolute"
+                            bottom="20px"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            color="white"
+                            fontSize="sm"
+                            opacity={0.8}
+                        >
+                            Click en el fondo o en ✕ para cerrar
+                        </Text>
+                    </Box>
+                );
+            })()}
         </VStack>
+        </>
     );
 }
 

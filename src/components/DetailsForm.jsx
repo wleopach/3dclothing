@@ -121,7 +121,7 @@ const DetailsForm = () => {
             if (!campo.tipo && campo["selector-de-modelo"]) {
                 const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
                 const isRequired = isModelSelectorRequired(campo);
-                
+
                 if (isRequired && !hasModelSelection) {
                     errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
                 }
@@ -153,24 +153,65 @@ const DetailsForm = () => {
 
             if (campo.tipo === "escoger-multi-campo") {
                 if (campo["selector-de-modelo"]) {
-                    const hasNormalSelection = formValues[`${fieldName}_main`] && formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                    const mainSelected = formValues[`${fieldName}_main`];
                     const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
 
-                    if (campo.obligatorio === false) {
-                        if (hasNormalSelection && !hasModelSelection) {
-                            errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
+                    if (mainSelected) {
+                        // Find the selected option to check if it has sub-options
+                        const selectedOption = campo.opciones.find(opcion => opcion.nombre === mainSelected);
+                        
+                        if (selectedOption && selectedOption.opciones) {
+                            // If the selected option has sub-options (like "Cremallera")
+                            if (selectedOption.tipo === "escoger") {
+                                const hasSubSelection = formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                                if (!hasSubSelection) {
+                                    errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                                    return; // Don't check model selection until sub-selection is complete
+                                }
+                            }
+                            // If it's a escoger-tipo with color
+                            if (selectedOption.tipo === "escoger-tipo") {
+                                // Check if any of the sub-options is a color type
+                                const hasColorType = selectedOption.opciones.some(subObj => subObj.tipo === "color");
+                                if (hasColorType) {
+                                    // Validate that all color fields are filled
+                                    const allColorsSelected = selectedOption.opciones.every(subObj => {
+                                        if (subObj.tipo === "color") {
+                                            const colorValue = formValues[`${fieldName}_${subObj.nombre}`];
+                                            return colorValue !== undefined && colorValue !== null;
+                                        }
+                                        return true;
+                                    });
+                                    if (!allColorsSelected) {
+                                        errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                                        return; // Don't check model selection until all colors are selected
+                                    }
+                                }
+                            }
                         }
-                    } else {
-                        if (!hasNormalSelection) {
-                            errors.push(`Debe completar la selección para "${campo.nombre}"`);
-                        }
-                        if (hasNormalSelection && !hasModelSelection) {
+                        
+                        // If we reach here, either the option has no sub-options or all sub-options are selected
+                        // Now check if model selection is required
+                        if (!hasModelSelection) {
                             errors.push(`Debe seleccionar un modelo para "${campo.nombre}"`);
                         }
                     }
                 } else {
-                    if (campo.obligatorio !== false && (!formValues[`${fieldName}_main`] || !formValues[`${fieldName}_sub`] || formValues[`${fieldName}_sub`].trim() === '')) {
-                        errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                    // If no model selector, validate the field completion
+                    const mainSelected = formValues[`${fieldName}_main`];
+                    if (campo.obligatorio !== false && !mainSelected) {
+                        errors.push(`Debe seleccionar una opción para "${campo.nombre}"`);
+                    } else if (mainSelected) {
+                        // Check if sub-selection is required
+                        const selectedOption = campo.opciones.find(opcion => opcion.nombre === mainSelected);
+                        if (selectedOption && selectedOption.opciones) {
+                            if (selectedOption.tipo === "escoger") {
+                                const hasSubSelection = formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                                if (!hasSubSelection) {
+                                    errors.push(`Debe completar la selección para "${campo.nombre}"`);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -202,7 +243,7 @@ const DetailsForm = () => {
             if (!campo.tipo && campo["selector-de-modelo"]) {
                 const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
                 const isRequired = isModelSelectorRequired(campo);
-                
+
                 if (isRequired) {
                     return hasModelSelection;
                 }
@@ -241,20 +282,53 @@ const DetailsForm = () => {
             if (campo.tipo === "escoger-multi-campo") {
                 // Check if field has model selector requirement
                 if (campo["selector-de-modelo"]) {
-                    const hasNormalSelection = formValues[`${fieldName}_main`] && formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                    const mainSelected = formValues[`${fieldName}_main`];
                     const hasModelSelection = formValues[`${fieldName}_modelo`] !== undefined;
 
-                    // If field is optional (obligatorio === false)
-                    if (campo.obligatorio === false) {
-                        // If a normal option is selected, then model selection becomes mandatory
-                        if (hasNormalSelection) {
-                            return hasModelSelection;
-                        }
-                        // If no normal option is selected, field is valid (optional)
+                    if (!mainSelected) {
+                        // If no main option is selected, field is valid (optional)
                         return true;
+                    }
+
+                    // Find the selected option to check if it has sub-options
+                    const selectedOption = campo.opciones.find(opcion => opcion.nombre === mainSelected);
+                    
+                    if (selectedOption && selectedOption.opciones) {
+                        // If the selected option has sub-options (like "Cremallera")
+                        if (selectedOption.tipo === "escoger") {
+                            const hasSubSelection = formValues[`${fieldName}_sub`] && formValues[`${fieldName}_sub`].trim() !== '';
+                            if (!hasSubSelection) {
+                                return false; // Need to select sub-option first
+                            }
+                        }
+                        // If it's a escoger-tipo with color
+                        if (selectedOption.tipo === "escoger-tipo") {
+                            // Check if any of the sub-options is a color type
+                            const hasColorType = selectedOption.opciones.some(subObj => subObj.tipo === "color");
+                            if (hasColorType) {
+                                // Validate that all color fields are filled
+                                const allColorsSelected = selectedOption.opciones.every(subObj => {
+                                    if (subObj.tipo === "color") {
+                                        const colorValue = formValues[`${fieldName}_${subObj.nombre}`];
+                                        return colorValue !== undefined && colorValue !== null;
+                                    }
+                                    return true;
+                                });
+                                if (!allColorsSelected) {
+                                    return false; // Need to select all colors first
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If we reach here, either the option has no sub-options or all sub-options are selected
+                    // Now check if model selection is required
+                    if (campo.obligatorio === false) {
+                        // If field is optional, model selection becomes mandatory when any option is selected
+                        return hasModelSelection;
                     } else {
-                        // If field is mandatory (obligatorio === true or undefined), both normal option and model are required
-                        return hasNormalSelection && hasModelSelection;
+                        // If field is mandatory, both option selection and model are required
+                        return hasModelSelection;
                     }
                 }
 
@@ -354,6 +428,20 @@ const DetailsForm = () => {
             const { stepNombre, campoNombre } = currentModelField;
             const newValues = { ...formValues };
             newValues[`${stepNombre}_${campoNombre}_modelo`] = selectedModelData;
+            
+            // Guardar también los campos de texto
+            if (selectedModelData.personName !== undefined) {
+                newValues[`${stepNombre}_${campoNombre}_personName`] = selectedModelData.personName;
+            }
+            if (selectedModelData.personRole !== undefined) {
+                newValues[`${stepNombre}_${campoNombre}_personRole`] = selectedModelData.personRole;
+            }
+            
+            // Guardar también la información de la imagen si existe
+            if (selectedModelData.imageData !== undefined) {
+                newValues[`${stepNombre}_${campoNombre}_imageData`] = selectedModelData.imageData;
+            }
+            
             setFormValues(newValues);
         }
         handleCloseModelSelector();
@@ -489,6 +577,10 @@ const DetailsForm = () => {
                     renderClearButton(() => {
                         const newValues = { ...formValues };
                         delete newValues[`${stepNombre}_${campoNombre}_modelo`];
+                        // También eliminar la información de la imagen y campos relacionados
+                        delete newValues[`${stepNombre}_${campoNombre}_imageData`];
+                        delete newValues[`${stepNombre}_${campoNombre}_personName`];
+                        delete newValues[`${stepNombre}_${campoNombre}_personRole`];
                         setFormValues(newValues);
                     })
                 )}
@@ -1073,7 +1165,7 @@ const DetailsForm = () => {
                 bg="black"
             >
                 <Box
-                    w={["95%", "90%", "80%", "70%"]}
+                    w={["95%", "90%", "90%", "90%"]}
                     bg="black"
                     p={[2, 3, 4, 6]}
                     borderRadius="lg"
@@ -1167,11 +1259,21 @@ const DetailsForm = () => {
                         modelIndex: modelData.selectedCollar,
                         colors: modelData.colors,
                         modelName: `Modelo ${modelData.selectedCollar + 1}`,
-                        modelType: currentModelType
+                        modelType: currentModelType,
+                        selectedModelPhoto: modelData.selectedModelPhoto,
+                        photoFileName: modelData.photoFileName,
+                        personName: modelData.personName,
+                        personRole: modelData.personRole,
+                        imageData: modelData.imageData // Incluir la información de la imagen
                     };
                     handleModelSelection(selectedModel);
                 }}
-                initialModelData={currentModelField ? formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_modelo`] : null}
+                initialModelData={currentModelField ? {
+                    ...formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_modelo`],
+                    personName: formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_personName`],
+                    personRole: formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_personRole`],
+                    imageData: formValues[`${currentModelField.stepNombre}_${currentModelField.campoNombre}_imageData`] // Incluir imageData en initialModelData
+                } : null}
                 modelType={currentModelType}
             />
         </>
