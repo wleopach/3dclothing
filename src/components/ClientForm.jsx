@@ -18,14 +18,14 @@ const ClientForm = () => {
                 boxShadow="2xl"
             >
                 <Formik
-                    initialValues={{ name: "", email: "", phone: "", orderDetails: "" }}
+                    initialValues={{ name: "", email: "", phone: "", }}
                     validationSchema={Yup.object({
                         name: Yup.string().required("Required"),
-                        email: Yup.string().email("Invalid email").required("Required"),
+                        email: Yup.string().email("Invalid email"),
                         phone: Yup.string()
                             .matches(/^\d{10}$/, "Phone must be 10 digits")
-                            .required("Required"),
-                        orderDetails: Yup.string().required("Required"),
+                            .required("Required")
+                     ,
                     })}
                     onSubmit={ async  (values, { setSubmitting }) => {
                         console.log("Order Submitted", values);
@@ -36,9 +36,9 @@ const ClientForm = () => {
                                 {
                                     cc : state.cc,
                                     name: values.name,
-                                    email: values.email,
+                                    email: values.email.trim() || null,
                                     cellphone: values.phone,
-                                    description: values.orderDetails,
+
                                 }
                             );
                             if (response.status === 201 || response.status === 200) {
@@ -89,11 +89,6 @@ const ClientForm = () => {
                                 <Field as={Input} name="phone" bg="gray.700" color="white" borderColor={snap.color} />
                                 <ErrorMessage name="phone" component="div" style={{ color: "red" }} />
 
-                                <label htmlFor="orderDetails">
-                                    <Text color={snap.color}>Descripción de la órden</Text>
-                                </label>
-                                <Field as={Input} name="orderDetails" bg="gray.700" color="white" borderColor={snap.color} />
-                                <ErrorMessage name="orderDetails" component="div" style={{ color: "red" }} />
 
                                 <Button type="submit" bg={snap.color} color="black !important"  colorScheme="yellow" isLoading={isSubmitting} width="full">
                                     Inciar órden

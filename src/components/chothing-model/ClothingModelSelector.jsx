@@ -55,6 +55,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                 Object.keys(modelo.color).forEach(id => allIds.add(id));
             }
         });
+
         return Array.from(allIds);
     };
 
