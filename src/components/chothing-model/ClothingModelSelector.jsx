@@ -283,9 +283,9 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
         const currentModel = getCurrentModel();
         if (currentModel === modelo17) {
             // Para modelo17, la foto es obligatoria
-            if (!selectedModelPhoto) {
-                return false;
-            }
+            // if (!selectedModelPhoto) {
+            //     return false;
+            // }
 
             // Si se ha ingresado nombre o cargo, ambos deben estar completos
             // if ((personName && !personRole) || (!personName && personRole)) {
@@ -810,7 +810,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                 <Center w="100%" mb={4}>
                     <VStack spacing={3} p={4} border="2px dashed" borderColor={selectedModelPhoto ? "green.400" : "orange.400"} borderRadius="md" bg="rgba(0,0,0,0.1)">
                         <Text color="white" fontSize="md" fontWeight="bold" textAlign="center">
-                            {showUploadedImage && initialModelData?.imageData ? "📸 Foto para el Modelo" : "📸 Foto Requerida para este Modelo"}
+                            {showUploadedImage && initialModelData?.imageData ? "📸 Foto para el Modelo" : "📸 Foto (Opcional)"}
                         </Text>
 
                         {!selectedModelPhoto && !(showUploadedImage && initialModelData?.imageData) ? (
@@ -972,7 +972,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                         maxW="500px"
                     >
                         <Text color="white" fontSize="md" fontWeight="bold" textAlign="center">
-                            📝 Información Adicional
+                            📝 Información Adicional (Opcional)
                         </Text>
                         <Text color="white" fontSize="sm" textAlign="center">
                             {showUploadedImage ? "Datos para el Bordado" : "Puede agregar el nombre y cargo para el bordado"}

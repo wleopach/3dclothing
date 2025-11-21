@@ -55,7 +55,7 @@ const ModelSelectorDialog = ({
                         _hover={{ bg: "red.600" }}
                         onClick={onClose}
                     >
-                        Cerrar
+                        Cerrar Sin Guardar
                     </Button>
                 </DialogHeader>
                 <DialogBody p={0} height="calc(100vh - 80px)" overflow="hidden">
