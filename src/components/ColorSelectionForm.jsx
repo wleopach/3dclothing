@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {Button, VStack, Box, Flex, Text, useBreakpointValue} from "@chakra-ui/react";
+import {Button, VStack, Box, Flex, Text, useBreakpointValue, Input} from "@chakra-ui/react";
 import { Formik, Form, } from "formik";
 import axiosInstance from "../axiosConfig";
 import {state} from "../store";
@@ -14,6 +14,7 @@ const ColorSelectionForm = () => {
     const [error, setError] = useState("");
     const [selectedColor, setSelectedColor] = useState(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Responsive values
     const colorBoxSize = useBreakpointValue({ base: "30px", sm: "35px", md: "40px" });
@@ -94,6 +95,11 @@ const ColorSelectionForm = () => {
         setSelectedColor(colorData);
     };
 
+    // Filter colors based on search query
+    const filteredColors = snap.colorsData.filter(colorData =>
+        colorData.code.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     // Valores iniciales del formulario basados en el estado global
     const getInitialValues = () => {
         if (!isInitialized) {
@@ -163,8 +169,21 @@ const ColorSelectionForm = () => {
                                         )}
                                     </Box>
 
+                                    {/* Search Bar */}
+                                    <Input
+                                        placeholder="Buscar por código..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        bg="white"
+                                        color="black"
+                                        _placeholder={{ color: "#999" }}
+                                        borderRadius="md"
+                                        flexShrink={0}
+                                        size={fontSize}
+                                    />
+
                                     {/* Scrollable Colors Container */}
-                                    <Text color="white"  fontSize={fontSize}  flexShrink={0}>Colores disponibles:</Text>
+                                    <Text color="white"  fontSize={fontSize}  flexShrink={0}>Colores disponibles: {filteredColors.length}</Text>
                                     <Box
                                         overflowY="auto"
                                         flexGrow={1}
@@ -199,7 +218,7 @@ const ColorSelectionForm = () => {
                                     >
                                         {loading ? (
                                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>Cargando colores...</Text>
-                                        ) : snap.colorsData.length === 0 ? (
+                                        ) : filteredColors.length === 0 ? (
                                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>No hay colores disponibles</Text>
                                         ) : (
                                             <Flex
@@ -208,7 +227,7 @@ const ColorSelectionForm = () => {
                                                 gap={[1, 2]}
                                                 px={[0, 1]}
                                             >
-                                                {snap.colorsData.map((colorData, index) => (
+                                                {filteredColors.map((colorData, index) => (
                                                     <Box
                                                         key={index}
                                                         onClick={() => {
