@@ -22,9 +22,11 @@ import {Field, Form, Formik} from 'formik';
 import {useCallback, useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import axiosInstance from "../axiosConfig";
-import {IoArrowBackOutline} from "react-icons/io5";
+import {IoArrowBackOutline, IoPrintOutline} from "react-icons/io5";
 import {MdArrowLeft, MdArrowRight} from "react-icons/md"
 import OrderDetailsDialog from "./OrderDetailsDialog";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const PAGE_SIZE = 30;  // Constante para el tamaño de página
 
@@ -417,6 +419,75 @@ function Orders() {
         });
     };
 
+    const handleDownloadPDF = (order) => {
+        const doc = new jsPDF();
+
+        // Helper function to format details recursively
+        const formatDetailsRecursive = (data, indentLevel = 0) => {
+            if (typeof data !== 'object' || data === null) return String(data);
+
+            const indent = ' '.repeat(indentLevel * 2);
+            return Object.entries(data).map(([key, value]) => {
+                if (typeof value === 'object' && value !== null) {
+                    return `${indent}${key}:\n${formatDetailsRecursive(value, indentLevel + 1)}`;
+                }
+                return `${indent}${key}: ${value}`;
+            }).join('\n');
+        };
+
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(49, 130, 206); // Blue
+        doc.text(`Orden #${order.id}`, 14, 20);
+
+        // Client & Order Info
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Cliente: ${order.client?.name || 'N/A'}`, 14, 30);
+        doc.text(`Email: ${order.client?.email || 'N/A'}`, 14, 35);
+        doc.text(`Vendedor: ${order.seller?.username || 'N/A'}`, 14, 40);
+        doc.text(`Cortador: ${order.cortador?.name || 'N/A'}`, 14, 45);
+        doc.text(`Fecha: ${formatDate(order.order_date)}`, 14, 50);
+
+        // Products Table
+        const tableColumn = ["Producto", "Talla", "Cantidad", "Sexo", "Tela", "Detalles"];
+        const tableRows = [];
+
+        if (order.products) {
+            order.products.forEach(product => {
+                let detailsStr = '';
+                if (product.details) {
+                    try {
+                        const details = JSON.parse(product.details);
+                        detailsStr = formatDetailsRecursive(details);
+                    } catch (e) {
+                        console.error("Error parsing details", e);
+                    }
+                }
+
+                const productData = [
+                    product.prenda?.name || 'N/A',
+                    product.size,
+                    product.quantity,
+                    product.sex,
+                    product.tela?.code || 'N/A',
+                    detailsStr
+                ];
+                tableRows.push(productData);
+            });
+        }
+
+        autoTable(doc, {
+            startY: 55,
+            head: [tableColumn],
+            body: tableRows,
+            headStyles: { fillColor: [49, 130, 206] },
+            styles: { overflow: 'linebreak' },
+        });
+
+        doc.save(`orden_${order.id}.pdf`);
+    };
+
     //const snap = useSnapshot(state);
     return (
         <Box position="relative" minHeight="100vh">  {/* Contenedor principal con altura mínima */}
@@ -545,6 +616,17 @@ function Orders() {
                                                 <Heading size="lg" color="white" textShadow="0 2px 4px rgba(0,0,0,0.3)">
                                                     Orden #{order.id}
                                                 </Heading>
+                                                <IconButton
+                                                    aria-label="Descargar PDF"
+                                                    variant="ghost"
+                                                    colorScheme="whiteAlpha"
+                                                    color="white"
+                                                    size="sm"
+                                                    onClick={() => handleDownloadPDF(order)}
+                                                    _hover={{ bg: "whiteAlpha.300" }}
+                                                >
+                                                    <IoPrintOutline size={24} />
+                                                </IconButton>
                                             </Flex>
                                             <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={6}>
                                                 <Box>
