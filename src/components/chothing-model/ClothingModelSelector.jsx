@@ -83,6 +83,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     const [lightboxOpen, setLightboxOpen] = React.useState(false);
     const [lightboxIndex, setLightboxIndex] = React.useState(0);
     const lightboxRef = React.useRef(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Estados para notificaciones
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -665,6 +666,11 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
     const currentModel = getCurrentModel();
     const currentColorParts = getCurrentColorParts();
 
+    // Filter colors based on search query
+    const filteredModelColors = (snap.modelColorsData || []).filter(colorData =>
+        (colorData.code || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const handleConfirmSelection = async () => {
         if (!canConfirmSelection()) {
             showErrorNotification("Debes cargar una foto para este modelo antes de confirmar");
@@ -1117,8 +1123,22 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                         </Flex>
                     </Box>
 
+                    {/* Search Bar for colors */}
+                    <Input
+                        placeholder="Buscar por código..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        bg="white"
+                        color="black"
+                        _placeholder={{ color: "#999" }}
+                        borderRadius="md"
+                        flexShrink={0}
+                        size={fontSize}
+                        mb={2}
+                    />
+
                     <Text color="white" fontSize={fontSize} flexShrink={0}>
-                        Colores Disponibles:
+                        Colores disponibles: {filteredModelColors.length}
                     </Text>
 
                     <Box
@@ -1152,7 +1172,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                     >
                         {loading ? (
                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>Cargando colores...</Text>
-                        ) : snap.modelColorsData.length === 0 ? (
+                        ) : filteredModelColors.length === 0 ? (
                             <Text color="white" textAlign="center" py={2} fontSize={fontSize}>No hay colores disponibles</Text>
                         ) : (
                             <Flex
@@ -1161,7 +1181,7 @@ function ClothingModelSelector({ onModelSelect, initialModelData, typoModelo, sh
                                 gap={[2, 3]}
                                 px={[0, 1]}
                             >
-                                {snap.modelColorsData.map((colorData, index) => (
+                                {filteredModelColors.map((colorData, index) => (
                                     <Box
                                         key={index}
                                         onClick={() => handleColorSelect(colorData)}

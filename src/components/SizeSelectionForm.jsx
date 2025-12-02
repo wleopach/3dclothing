@@ -1,7 +1,6 @@
-import CurrentOrder  from "./CurrentOrder";
 import Nav from './Nav'
 import { useState, useEffect } from "react";
-import {Button, VStack, Box, Flex, Text, useBreakpointValue} from "@chakra-ui/react";
+import {Button, VStack, Box, Flex, Text, useBreakpointValue, Input} from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import axiosInstance from "../axiosConfig";
 import {state, addToCart} from "../store";
@@ -14,7 +13,6 @@ const SizeSelectionForm = () => {
     const [tallasData, setTallasData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [selectedTalla, setSelectedTalla] = useState(null);
     const [sex, setSex] = useState(state.currentOrder.sex || "");
     const [quantity, setQuantity] = useState(state.currentOrder.quantity || "");
     const [tallasCache, setTallasCache] = useState({});
@@ -43,9 +41,6 @@ const SizeSelectionForm = () => {
         if (tallasCache[cacheKey]) {
             setTallasData(tallasCache[cacheKey]);
             // Si hay una talla seleccionada en el estado, seleccionarla
-            if (state.currentOrder.size) {
-                setSelectedTalla(state.currentOrder.size);
-            }
             setIsInitialized(true);
             return;
         }
@@ -62,10 +57,6 @@ const SizeSelectionForm = () => {
             setTallasData(tallas);
 
             // Si hay una talla seleccionada en el estado, seleccionarla
-            if (state.currentOrder.size) {
-                setSelectedTalla(state.currentOrder.size);
-            }
-
             setTallasCache((prevCache) => ({
                 ...prevCache,
                 [cacheKey]: tallas,
@@ -151,7 +142,6 @@ const SizeSelectionForm = () => {
                                             const selectedSex = e.target.value;
                                             setFieldValue("sex", selectedSex);
                                             setSex(selectedSex);
-                                            setSelectedTalla(null);
                                             setFieldValue("talla", "");
                                             setFieldValue("quantity", "");
                                         }}
@@ -188,7 +178,6 @@ const SizeSelectionForm = () => {
                                                     <Button
                                                         key={index}
                                                         onClick={() => {
-                                                            setSelectedTalla(talla);
                                                             setFieldValue("talla", talla);
                                                         }}
                                                         size={buttonSize}
@@ -196,17 +185,17 @@ const SizeSelectionForm = () => {
                                                         minW={isSizeButtonsCompact ? "35px" : "40px"}
                                                         height={isSizeButtonsCompact ? "35px" : "40px"}
                                                         px={isSizeButtonsCompact ? 1 : 2}
-                                                        bg={selectedTalla === talla ? snap.colorGreen : "transparent"}
-                                                        color={selectedTalla === talla ? "white" : snap.color}
+                                                        bg={values.talla === talla ? snap.colorGreen : "transparent"}
+                                                        color={values.talla === talla ? "white" : snap.color}
                                                         border="2px solid"
-                                                        borderColor={selectedTalla === talla ? snap.colorGreen : snap.color}
+                                                        borderColor={values.talla === talla ? snap.colorGreen : snap.color}
                                                         _hover={{
-                                                            bg: selectedTalla === talla ? snap.colorGreen : `${snap.color}20`,
-                                                            borderColor: selectedTalla === talla ? snap.colorGreen : snap.color
+                                                            bg: values.talla === talla ? snap.colorGreen : `${snap.color}20`,
+                                                            borderColor: values.talla === talla ? snap.colorGreen : snap.color
                                                         }}
                                                         _active={{
-                                                            bg: selectedTalla === talla ? snap.colorGreen : `${snap.color}30`,
-                                                            borderColor: selectedTalla === talla ? snap.colorGreen : snap.color
+                                                            bg: values.talla === talla ? snap.colorGreen : `${snap.color}30`,
+                                                            borderColor: values.talla === talla ? snap.colorGreen : snap.color
                                                         }}
                                                         transition="all 0.2s"
                                                     >
@@ -214,6 +203,25 @@ const SizeSelectionForm = () => {
                                                     </Button>
                                                 ))}
                                             </Flex>
+                                        )}
+
+                                        {/* Custom Size Input */}
+                                        {sex && (
+                                            <Box mb={3} px={1}>
+                                                <Input
+                                                    placeholder="O escribe tu talla aquí..."
+                                                    value={values.talla}
+                                                    onChange={(e) => setFieldValue("talla", e.target.value)}
+                                                    color="white"
+                                                    borderColor={snap.color}
+                                                    _hover={{ borderColor: snap.colorGreen }}
+                                                    _focus={{ borderColor: snap.colorGreen, boxShadow: "none" }}
+                                                    size={buttonSize}
+                                                    textAlign="center"
+                                                    bg="transparent"
+                                                    _placeholder={{ color: "gray.500" }}
+                                                />
+                                            </Box>
                                         )}
 
                                         {/* Display Selected Options */}
@@ -224,15 +232,15 @@ const SizeSelectionForm = () => {
                                                 </Text>
                                             )}
 
-                                            {selectedTalla && (
+                                            {values.talla && (
                                                 <Text color="white" fontSize={fontSize} textAlign="center">
-                                                    Talla seleccionada: <strong>{selectedTalla}</strong>
+                                                    Talla seleccionada: <strong>{values.talla}</strong>
                                                 </Text>
                                             )}
                                         </Box>
 
                                         {/* Quantity Field */}
-                                        {selectedTalla && (
+                                        {values.talla && (
                                             <>
                                                 <Field
                                                     as="input"
