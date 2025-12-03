@@ -18,6 +18,7 @@ import {
     VStack,
     Separator
 } from "@chakra-ui/react";
+import { rgbToCode } from "./ColorTelaMap";
 import {Field, Form, Formik} from 'formik';
 import {useCallback, useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
@@ -103,6 +104,7 @@ function Orders() {
                 }
             });
             setItems(response.data.results);
+            console.log(response.data.results);
             setPagination({
                 count: response.data.count,
                 next: response.data.next,
@@ -540,11 +542,13 @@ function Orders() {
                         }`;
                         const colorCode = getFirstColorCodeFromModel(model.modelData);
                         const colorTuple = colorCode ? parseRgbTupleString(colorCode) : null;
-                        
+                        const cleanColor = colorCode?.replace(/[()]/g, "");   // "(123,182,77)" → "123,182,77"
+                        const telaCode = rgbToCode[cleanColor];
+
                         if (colorTuple) {
                             colors.push({ lineIndex: lines.length, color: colorTuple });
                         }
-                        lines.push(`  • ${model.fieldName}: ${modelName}`);
+                        lines.push(`  • ${model.fieldName}: ${modelName}${telaCode ? ` - ${telaCode}` : ''}`);
                     });
                     lines.push('');
                 }
@@ -567,11 +571,15 @@ function Orders() {
                     }`;
                     const colorCode = getFirstColorCodeFromModel(model.modelData);
                     const colorTuple = colorCode ? parseRgbTupleString(colorCode) : null;
-                    
+                    const cleanColor = colorCode?.replace(/[()]/g, "");   // "(123,182,77)" → "123,182,77"
+                    const telaCode = rgbToCode[cleanColor];
+
+
+
                     if (colorTuple) {
                         colors.push({ lineIndex: lines.length, color: colorTuple });
                     }
-                    lines.push(`  • ${model.fieldName}: ${modelName}`);
+                    lines.push(`  • ${model.fieldName}: ${modelName}${telaCode ? ` - ${telaCode}` : ''}`);
                 });
                 lines.push('');
             }
@@ -833,7 +841,7 @@ function Orders() {
         doc.text(`Fecha: ${formatDate(order.order_date)}`, 14, 50);
 
         // Products Table
-        const tableColumn = ["Producto", "Talla", "Cantidad", "Sexo", "Tela", "Detalles"];
+        const tableColumn = ["Producto", "Talla", "Cantidad", "Sexo", "Tela","Stock" , "Detalles"];
         const tableRows = [];
         const productColors = [];
 
@@ -849,6 +857,7 @@ function Orders() {
                     product.quantity,
                     product.sex,
                     product.tela?.code || 'N/A',
+                    product.tela?.stock_description,
                     detailsStr
                 ];
                 tableRows.push(productData);
@@ -862,7 +871,7 @@ function Orders() {
             headStyles: { fillColor: [49, 130, 206] },
             styles: { overflow: 'linebreak', fontSize: 8 },
             didDrawCell: (data) => {
-                if (data.section !== 'body' || data.column.index !== 5) return;
+                if (data.section !== 'body' || data.column.index !== 6) return;
                 
                 const colorData = productColors[data.row.index];
                 if (!colorData || colorData.length === 0) return;
