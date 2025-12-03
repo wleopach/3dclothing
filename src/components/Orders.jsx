@@ -27,6 +27,14 @@ import {MdArrowLeft, MdArrowRight} from "react-icons/md"
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+    modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
+    modelo18, modelo8, modelo9, pantalon6, modelo20, pantalon11,
+    modelo12, modelo1, modelo7, modelo19, modelo2, pantalon10,
+    pantalon9, pantalon1, pantalon7, modelo16, modelo14, pantalon4,
+    modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3
+} from "./chothing-model/collars/Collars";
+import types from "./chothing-model/collars/TypeMap";
 
 const PAGE_SIZE = 30;  // Constante para el tamaño de página
 
@@ -419,20 +427,395 @@ function Orders() {
         });
     };
 
-    const handleDownloadPDF = (order) => {
+    const handleDownloadPDF = async (order) => {
         const doc = new jsPDF();
 
-        // Helper function to format details recursively
-        const formatDetailsRecursive = (data, indentLevel = 0) => {
-            if (typeof data !== 'object' || data === null) return String(data);
+        const formatKey = (key) => {
+            const fieldMappings = {
+                'personName': 'Nombre de la persona',
+                'personRole': 'Cargo de la persona'
+            };
 
-            const indent = ' '.repeat(indentLevel * 2);
-            return Object.entries(data).map(([key, value]) => {
-                if (typeof value === 'object' && value !== null) {
-                    return `${indent}${key}:\n${formatDetailsRecursive(value, indentLevel + 1)}`;
+            return key
+                .split('_')
+                .map(word => {
+                    if (fieldMappings[word]) {
+                        return fieldMappings[word];
+                    }
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                .join(' ');
+        };
+
+        const isBlusa = (productName) => {
+            if (!productName) return false;
+            return productName.toLowerCase().includes('blusa');
+        };
+
+        const getFirstColorCodeFromModel = (modelData) => {
+            if (!modelData || !modelData.colors) return '';
+            const firstColor = Object.values(modelData.colors)[0];
+            if (!firstColor) return '';
+            return String(firstColor);
+        };
+
+        const parseRgbTupleString = (colorStr) => {
+            if (!colorStr || typeof colorStr !== 'string') return null;
+            const match = colorStr.match(/\((\d+),(\d+),(\d+)\)/);
+            if (!match) return null;
+            return [
+                parseInt(match[1], 10),
+                parseInt(match[2], 10),
+                parseInt(match[3], 10)
+            ];
+        };
+
+        const findSelectedModels = (details) => {
+            const models = [];
+            Object.entries(details || {}).forEach(([key, value]) => {
+                if (key.endsWith('_modelo') && typeof value === 'object' && value !== null) {
+                    const fieldName = key.replace('_modelo', '');
+                    const formattedFieldName = formatKey(fieldName);
+
+                    const imageData = details[`${fieldName}_imageData`];
+                    const personName = details[`${fieldName}_personName`];
+                    const personRole = details[`${fieldName}_personRole`];
+
+                    const completeModelData = {
+                        ...value,
+                        imageData,
+                        personName,
+                        personRole
+                    };
+
+                    models.push({
+                        fieldName: formattedFieldName,
+                        modelData: completeModelData,
+                        originalKey: key
+                    });
                 }
-                return `${indent}${key}: ${value}`;
-            }).join('\n');
+            });
+            return models;
+        };
+
+        const findSelectedTypes = (details) => {
+            const types = [];
+            Object.entries(details || {}).forEach(([key, value]) => {
+                if (!key.endsWith('_modelo') && typeof value !== 'object' && value !== null && value !== '') {
+                    const formattedFieldName = formatKey(key);
+                    types.push({
+                        fieldName: formattedFieldName,
+                        value,
+                        originalKey: key
+                    });
+                }
+            });
+            return types;
+        };
+
+        const buildProductDetailsText = (product) => {
+            if (!product.details) return { text: '', colors: [] };
+
+            let details;
+            try {
+                details = JSON.parse(product.details);
+            } catch (e) {
+                console.error('Error parsing details', e);
+                return { text: '', colors: [] };
+            }
+
+            const lines = [];
+            const colors = [];
+            const productName = product.prenda?.name || '';
+
+            const selectedModels = findSelectedModels(details);
+            const selectedTypes = findSelectedTypes(details);
+
+            if (isBlusa(productName)) {
+                if (selectedModels.length > 0) {
+                    lines.push('Modelos Seleccionados:');
+                    selectedModels.forEach((model) => {
+                        const modelName = model.modelData.modelName || `Modelo ${
+                            (model.modelData.modelIndex ?? 0) + 1
+                        }`;
+                        const colorCode = getFirstColorCodeFromModel(model.modelData);
+                        const colorTuple = colorCode ? parseRgbTupleString(colorCode) : null;
+                        
+                        if (colorTuple) {
+                            colors.push({ lineIndex: lines.length, color: colorTuple });
+                        }
+                        lines.push(`  • ${model.fieldName}: ${modelName}`);
+                    });
+                    lines.push('');
+                }
+
+                if (selectedTypes.length > 0) {
+                    lines.push('Bolsillos:');
+                    selectedTypes.forEach((type) => {
+                        lines.push(`  • ${type.fieldName}: ${type.value}`);
+                    });
+                }
+
+                return { text: lines.join('\n'), colors };
+            }
+
+            if (selectedModels.length > 0) {
+                lines.push('Modelos Seleccionados:');
+                selectedModels.forEach((model) => {
+                    const modelName = model.modelData.modelName || `Modelo ${
+                        (model.modelData.modelIndex ?? 0) + 1
+                    }`;
+                    const colorCode = getFirstColorCodeFromModel(model.modelData);
+                    const colorTuple = colorCode ? parseRgbTupleString(colorCode) : null;
+                    
+                    if (colorTuple) {
+                        colors.push({ lineIndex: lines.length, color: colorTuple });
+                    }
+                    lines.push(`  • ${model.fieldName}: ${modelName}`);
+                });
+                lines.push('');
+            }
+
+            lines.push('Pretina:');
+            lines.push(
+                `  • Pretina Caucho: ${
+                    details['pretina_Pretina Caucho'] ?? 'N/A'
+                }`
+            );
+            lines.push(
+                `  • Pretina: ${
+                    details['pretina_Pretina'] ?? 'N/A'
+                }`
+            );
+            lines.push('');
+
+            lines.push('Bolsillos:');
+            const lateralMain = details['bolsillos_lateral_main'];
+            const lateralSub = details['bolsillos_lateral_sub'];
+            if (lateralMain || lateralSub) {
+                lines.push(
+                    `  • Tipo de Bolsillo Lateral: ${
+                        lateralMain ? `${lateralMain}${lateralSub ? ' --> ' + lateralSub : ''}` : 'Ninguno'
+                    }`
+                );
+            }
+
+            const parcheTraseroMain = details['bolsillos_parche trasero_main'];
+            const parcheTraseroSub = details['bolsillos_parche trasero_sub'];
+            lines.push(
+                `  • Parche trasero: ${
+                    parcheTraseroMain
+                        ? `${parcheTraseroMain}${parcheTraseroSub ? ' --> ' + parcheTraseroSub : ''}`
+                        : 'Ninguno'
+                }`
+            );
+
+            const parcheRodillaMain = details['bolsillos_parche rodilla_main'];
+            const parcheRodillaSub = details['bolsillos_parche rodilla_sub'];
+            lines.push(
+                `  • Parche rodilla: ${
+                    parcheRodillaMain
+                        ? `${parcheRodillaMain}${parcheRodillaSub ? ' --> ' + parcheRodillaSub : ''}`
+                        : 'Ninguno'
+                }`
+            );
+            lines.push('');
+
+            lines.push('Bota:');
+            lines.push(
+                `  • Tipo bota: ${
+                    details['bota_Tipo bota'] ?? 'N/A'
+                }`
+            );
+            lines.push(
+                `  • Dimensiones Ancho: ${
+                    details['bota_Dimensiones_Ancho'] ?? 'N/A'
+                } cm`
+            );
+            lines.push(
+                `  • Dimensiones Largo: ${
+                    details['bota_Dimensiones_Largo'] ?? 'N/A'
+                } cm`
+            );
+
+            return { text: lines.join('\n'), colors };
+        };
+
+        const getFirstModelImageData = (products) => {
+            if (!products) return null;
+            for (const product of products) {
+                if (!product.details) continue;
+                try {
+                    const details = JSON.parse(product.details);
+                    const models = findSelectedModels(details);
+                    for (const model of models) {
+                        if (model.modelData && model.modelData.imageData) {
+                            return model.modelData.imageData;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing details for imageData", e);
+                }
+            }
+            return null;
+        };
+
+        const loadImage = (src) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = (err) => reject(err);
+                img.src = src;
+            });
+        };
+
+        const modelos = [
+            modelo3, modelo15, modelo6, modelo17, modelo10, modelo5,
+            modelo18, modelo8, modelo9, pantalon6, modelo20, pantalon11,
+            modelo12, modelo1, modelo7, modelo19, modelo2, pantalon10,
+            pantalon9, pantalon1, pantalon7, modelo16, modelo14, pantalon4,
+            modelo13, pantalon8, pantalon2, modelo4, pantalon5, modelo11, pantalon3
+        ];
+
+        const getRgbColorForSvg = (colorStr) => {
+            if (!colorStr || typeof colorStr !== 'string') {
+                return 'gray';
+            }
+            try {
+                const rgbMatch = colorStr.match(/\((\d+),(\d+),(\d+)\)/);
+                if (rgbMatch && rgbMatch.length === 4) {
+                    const [_, r, g, b] = rgbMatch;
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+                return 'gray';
+            } catch (error) {
+                return 'gray';
+            }
+        };
+
+        const svgToDataURL = async (modelData) => {
+            if (!modelData || modelData.modelIndex === undefined) return null;
+
+            let modelosArray = modelos;
+            if (modelData.modelType && types[modelData.modelType]) {
+                modelosArray = types[modelData.modelType];
+            }
+
+            const modelo = modelosArray[modelData.modelIndex];
+            if (!modelo) return null;
+
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("xmlns", svgNS);
+            svg.setAttribute("width", "1080");
+            svg.setAttribute("height", "1200");
+            svg.setAttribute("viewBox", "0 0 1080 1200");
+
+            const renderSVGElement = (element, color = null) => {
+                const fillColor = color ? getRgbColorForSvg(color) : "currentColor";
+
+                if (element.d) {
+                    const path = document.createElementNS(svgNS, "path");
+                    path.setAttribute("fill", fillColor);
+                    path.setAttribute("d", element.d);
+                    if (element.transform) path.setAttribute("transform", element.transform);
+                    return path;
+                } else if (element.x !== undefined && element.y !== undefined && element.width !== undefined && element.height !== undefined) {
+                    const rect = document.createElementNS(svgNS, "rect");
+                    rect.setAttribute("fill", fillColor);
+                    rect.setAttribute("x", element.x);
+                    rect.setAttribute("y", element.y);
+                    rect.setAttribute("width", element.width);
+                    rect.setAttribute("height", element.height);
+                    if (element.rx) rect.setAttribute("rx", element.rx);
+                    if (element.ry) rect.setAttribute("ry", element.ry);
+                    if (element.transform) rect.setAttribute("transform", element.transform);
+                    return rect;
+                } else if (element.cx !== undefined && element.cy !== undefined && element.r !== undefined) {
+                    const circle = document.createElementNS(svgNS, "circle");
+                    circle.setAttribute("fill", fillColor);
+                    circle.setAttribute("cx", element.cx);
+                    circle.setAttribute("cy", element.cy);
+                    circle.setAttribute("r", element.r);
+                    if (element.transform) circle.setAttribute("transform", element.transform);
+                    return circle;
+                } else if (element.points && !element.strokeWidth) {
+                    const polygon = document.createElementNS(svgNS, "polygon");
+                    polygon.setAttribute("fill", fillColor);
+                    polygon.setAttribute("points", element.points);
+                    if (element.transform) polygon.setAttribute("transform", element.transform);
+                    return polygon;
+                } else if (element.points && element.strokeWidth) {
+                    const polyline = document.createElementNS(svgNS, "polyline");
+                    polyline.setAttribute("fill", "none");
+                    polyline.setAttribute("stroke", "#000000");
+                    polyline.setAttribute("points", element.points);
+                    polyline.setAttribute("stroke-width", element.strokeWidth || "2");
+                    if (element.transform) polyline.setAttribute("transform", element.transform);
+                    return polyline;
+                } else if (element.x1 !== undefined) {
+                    const line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", element.x1);
+                    line.setAttribute("y1", element.y1);
+                    line.setAttribute("x2", element.x2);
+                    line.setAttribute("y2", element.y2);
+                    line.setAttribute("stroke", "#000000");
+                    line.setAttribute("stroke-width", element.strokeWidth || "2");
+                    if (element.transform) line.setAttribute("transform", element.transform);
+                    return line;
+                }
+                return null;
+            };
+
+            if (modelo.fondo) {
+                Object.entries(modelo.fondo).forEach(([key, fondoGroup]) => {
+                    ['paths', 'polygons', 'polylines', 'lines'].forEach(type => {
+                        if (fondoGroup[type]) {
+                            fondoGroup[type].forEach(element => {
+                                const el = renderSVGElement(element);
+                                if (el) svg.appendChild(el);
+                            });
+                        }
+                    });
+                });
+            }
+
+            if (modelo.color && modelData.colors) {
+                Object.entries(modelo.color).forEach(([colorId, colorGroup]) => {
+                    const colorValue = modelData.colors[colorId];
+                    const color = colorValue || '#FF0000';
+                    
+                    ['paths', 'polygons', 'polylines', 'lines', 'rects', 'circles'].forEach(type => {
+                        if (colorGroup[type]) {
+                            colorGroup[type].forEach(element => {
+                                const el = renderSVGElement(element, color);
+                                if (el) svg.appendChild(el);
+                            });
+                        }
+                    });
+                });
+            }
+
+            const svgString = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            try {
+                const img = await loadImage(url);
+                const canvas = document.createElement('canvas');
+                canvas.width = 1080;
+                canvas.height = 1200;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/png');
+                URL.revokeObjectURL(url);
+                return dataURL;
+            } catch (e) {
+                console.error('Error converting SVG to image:', e);
+                URL.revokeObjectURL(url);
+                return null;
+            }
         };
 
         // Title
@@ -452,18 +835,13 @@ function Orders() {
         // Products Table
         const tableColumn = ["Producto", "Talla", "Cantidad", "Sexo", "Tela", "Detalles"];
         const tableRows = [];
+        const productColors = [];
 
         if (order.products) {
             order.products.forEach(product => {
-                let detailsStr = '';
-                if (product.details) {
-                    try {
-                        const details = JSON.parse(product.details);
-                        detailsStr = formatDetailsRecursive(details);
-                    } catch (e) {
-                        console.error("Error parsing details", e);
-                    }
-                }
+                const { text: detailsStr, colors } = buildProductDetailsText(product);
+
+                productColors.push(colors);
 
                 const productData = [
                     product.prenda?.name || 'N/A',
@@ -482,8 +860,112 @@ function Orders() {
             head: [tableColumn],
             body: tableRows,
             headStyles: { fillColor: [49, 130, 206] },
-            styles: { overflow: 'linebreak' },
+            styles: { overflow: 'linebreak', fontSize: 8 },
+            didDrawCell: (data) => {
+                if (data.section !== 'body' || data.column.index !== 5) return;
+                
+                const colorData = productColors[data.row.index];
+                if (!colorData || colorData.length === 0) return;
+
+                const size = 3;
+                const cell = data.cell;
+                const cellLines = data.cell.text;
+                
+                doc.setFontSize(8);
+                
+                colorData.forEach((item) => {
+                    const { lineIndex, color } = item;
+                    
+                    if (lineIndex >= cellLines.length) return;
+                    
+                    const lineText = cellLines[lineIndex];
+                    const textWidth = doc.getTextWidth(lineText);
+                    
+                    const lineHeight = cell.height / cellLines.length;
+                    
+                    const x = cell.x + 2 + textWidth + 2;
+                    const y = cell.y + (lineIndex * lineHeight) + (lineHeight - size) / 2;
+                    
+                    const [r, g, b] = color;
+                    doc.setFillColor(r, g, b);
+                    doc.rect(x, y, size, size, 'F');
+                });
+            }
         });
+
+        let finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY : 55;
+        let currentX = 14;
+        const maxWidth = 60;
+        const maxHeight = 70;
+        const spacing = 5;
+
+        for (const product of order.products || []) {
+            if (!product.details) continue;
+
+            try {
+                const details = JSON.parse(product.details);
+                const selectedModels = findSelectedModels(details);
+
+                for (const model of selectedModels) {
+                    if (!model.modelData) continue;
+
+                    const svgDataURL = await svgToDataURL(model.modelData);
+                    if (svgDataURL) {
+                        const img = await loadImage(svgDataURL);
+                        let width = img.width;
+                        let height = img.height;
+
+                        const widthRatio = maxWidth / width;
+                        const heightRatio = maxHeight / height;
+                        const ratio = Math.min(widthRatio, heightRatio, 1);
+                        width *= ratio;
+                        height *= ratio;
+
+                        if (currentX + width > 200) {
+                            currentX = 14;
+                            finalY += maxHeight + spacing;
+                        }
+
+                        doc.setFontSize(8);
+                        doc.text(`${model.fieldName}`, currentX, finalY + 5);
+                        doc.addImage(svgDataURL, 'PNG', currentX, finalY + 8, width, height);
+
+                        currentX += width + spacing;
+                    }
+
+                    if (model.modelData.imageData) {
+                        const imageData = model.modelData.imageData;
+                        const baseUrl = axiosInstance.defaults.baseURL.replace(/\/$/, "");
+                        const imageUrl = `${baseUrl}/images/${imageData.id}/?extension=${imageData.extension}`;
+                        const img = await loadImage(imageUrl);
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        const widthRatio = maxWidth / width;
+                        const heightRatio = maxHeight / height;
+                        const ratio = Math.min(widthRatio, heightRatio, 1);
+                        width *= ratio;
+                        height *= ratio;
+
+                        if (currentX + width > 200) {
+                            currentX = 14;
+                            finalY += maxHeight + spacing;
+                        }
+
+                        const ext = (imageData.extension || '').toLowerCase();
+                        const format = ext === 'jpg' || ext === 'jpeg' ? 'JPEG' : 'PNG';
+
+                        doc.text(`Foto - ${model.fieldName}`, currentX, finalY + maxHeight + spacing + 5);
+                        doc.addImage(img, format, currentX, finalY + maxHeight + spacing + 8, width, height);
+
+                        currentX += width + spacing;
+                    }
+                }
+            } catch (e) {
+                console.error("Error adding model images to PDF", e);
+            }
+        }
 
         doc.save(`orden_${order.id}.pdf`);
     };
