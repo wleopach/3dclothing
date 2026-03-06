@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { Button, Input, VStack, Box, Flex, Text } from "@chakra-ui/react";
+import { Button, Input, VStack, Box, Flex, Text, Image } from "@chakra-ui/react";
+import LarocaLogo from "/Laroca.png?url";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
@@ -48,6 +49,9 @@ const LoginForm = () => {
                 borderRadius="lg"
                 boxShadow="2xl"
             >
+                <VStack spacing={4} mb={4}>
+                    <Image src={LarocaLogo} alt="La roca" maxW="200px" />
+                </VStack>
                 <Formik
                     initialValues={{ email: "", password: "" }}
                     validationSchema={Yup.object({
